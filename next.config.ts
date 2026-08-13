@@ -1,7 +1,8 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Suppress the Turbopack/webpack mismatch warning and explicitly opt in
+  turbopack: {},
 };
 
 export default nextConfig;
