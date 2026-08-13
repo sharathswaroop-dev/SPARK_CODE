@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: sparkcodemvp2
+    runtime: node
+    region: singapore
+    plan: free
+    buildCommand: npm install && npx prisma db push && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./prisma/dev.db
+      - key: AUTH_SECRET
+        generateValue: true
