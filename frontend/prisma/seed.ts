@@ -1,5 +1,5 @@
 /**
- * Master Prisma Seed Engine — Executes all modular step seed files (Steps 1 to 18).
+ * Master Prisma Seed Engine — Executes all modular step seed files (Steps 1 to 19).
  * Run: npx prisma db seed
  */
 import { PrismaClient } from '@prisma/client';
@@ -21,6 +21,7 @@ import { step15Problems } from './seeds/step15';
 import { step16Problems } from './seeds/step16';
 import { step17Problems } from './seeds/step17';
 import { step18Problems } from './seeds/step18';
+import { step19Problems } from './seeds/step19';
 
 const prisma = new PrismaClient();
 
@@ -43,10 +44,11 @@ const allProblems = [
   ...step16Problems,
   ...step17Problems,
   ...step18Problems,
+  ...step19Problems,
 ];
 
 async function main() {
-  console.log(`Seeding database with ${allProblems.length} original DSA problems across all 18 topic steps...`);
+  console.log(`Seeding database with ${allProblems.length} original DSA problems across all 19 topic steps...`);
 
   for (const p of allProblems) {
     const { examples, testCases, starterCode, ...problemData } = p;
