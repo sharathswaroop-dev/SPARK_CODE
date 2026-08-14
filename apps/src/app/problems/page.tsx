@@ -7,7 +7,9 @@ import {
   Search, Lock, ChevronRight, Loader2, BookOpen, Compass,
   CalendarDays, Library, LayoutList, Zap, Star, CheckCircle2,
   X, ExternalLink, TrendingUp, Building2, Flame, Sparkles,
-  Check, Filter, ArrowUpDown, Code, Layers
+  Check, Filter, ArrowUpDown, Code, Layers, Shuffle,
+  Bookmark, Award, Clock, ChevronDown, ChevronUp, ChevronLeft,
+  Smartphone, GraduationCap, ShieldCheck, Heart, Plus
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -31,299 +33,51 @@ interface ProblemListResponse {
   pages: number;
 }
 
-// ─── Topic chips data ─────────────────────────────────────────────────────────
+// ─── Main Category Tab Pills ─────────────────────────────────────────────────
 
-const TOPIC_CHIPS = [
-  'All Topics',
-  'Array', 'String', 'Hash Table', 'Dynamic Programming',
-  'Binary Search', 'Two Pointers', 'Tree', 'Graph', 'Matrix',
-  'Stack', 'Heap (Priority Queue)', 'Linked List', 'Greedy',
-  'Recursion', 'Backtracking', 'Bit Manipulation', 'Sliding Window',
-  'Sorting', 'Trie', 'Prefix Sum', 'Divide and Conquer',
+const MAIN_TABS = [
+  { id: 'all', label: 'All Topics', icon: LayoutList, color: 'text-slate-900 bg-slate-900 text-white' },
+  { id: 'algorithms', label: 'Algorithms', icon: Code, color: 'text-amber-600 bg-amber-50 border-amber-200' },
+  { id: 'database', label: 'Database', icon: Layers, color: 'text-blue-600 bg-blue-50 border-blue-200' },
+  { id: 'javascript', label: 'JavaScript', icon: Zap, color: 'text-yellow-600 bg-yellow-50 border-yellow-200' },
+  { id: 'concurrency', label: 'Concurrency', icon: Flame, color: 'text-purple-600 bg-purple-50 border-purple-200' },
+];
+
+// ─── Topic chips with counts ──────────────────────────────────────────────────
+
+const TOPIC_TAGS = [
+  { name: 'Array', count: 245 },
+  { name: 'String', count: 180 },
+  { name: 'Hash Table', count: 165 },
+  { name: 'Dynamic Programming', count: 142 },
+  { name: 'Math', count: 120 },
+  { name: 'Sorting', count: 98 },
+  { name: 'Greedy', count: 86 },
+  { name: 'Depth-First Search', count: 75 },
+  { name: 'Binary Search', count: 72 },
+  { name: 'Tree', count: 68 },
+  { name: 'Matrix', count: 54 },
+  { name: 'Two Pointers', count: 52 },
+  { name: 'Bit Manipulation', count: 48 },
+  { name: 'Stack', count: 45 },
+  { name: 'Heap (Priority Queue)', count: 38 },
+  { name: 'Graph', count: 36 },
+  { name: 'Linked List', count: 32 },
+  { name: 'Sliding Window', count: 28 },
+  { name: 'Trie', count: 22 },
+  { name: 'Recursion', count: 20 },
 ];
 
 // ─── Trending Companies ───────────────────────────────────────────────────────
 
 const TRENDING_COMPANIES = [
-  { name: 'Amazon', count: '2.0k', color: 'bg-amber-500/10 text-amber-700 border-amber-500/20 hover:bg-amber-500/20' },
-  { name: 'Google', count: '2.3k', color: 'bg-blue-500/10 text-blue-700 border-blue-500/20 hover:bg-blue-500/20' },
-  { name: 'Microsoft', count: '1.4k', color: 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20 hover:bg-indigo-500/20' },
-  { name: 'Meta', count: '1.4k', color: 'bg-rose-500/10 text-rose-700 border-rose-500/20 hover:bg-rose-500/20' },
-  { name: 'Apple', count: '890', color: 'bg-slate-500/10 text-slate-700 border-slate-500/20 hover:bg-slate-500/20' },
-  { name: 'Adobe', count: '650', color: 'bg-red-500/10 text-red-700 border-red-500/20 hover:bg-red-500/20' },
+  { name: 'Amazon', count: 2045, badgeColor: 'bg-amber-100 text-amber-800' },
+  { name: 'Google', count: 2341, badgeColor: 'bg-blue-100 text-blue-800' },
+  { name: 'Microsoft', count: 1384, badgeColor: 'bg-indigo-100 text-indigo-800' },
+  { name: 'Meta', count: 1402, badgeColor: 'bg-rose-100 text-rose-800' },
+  { name: 'Apple', count: 896, badgeColor: 'bg-slate-200 text-slate-800' },
+  { name: 'Adobe', count: 654, badgeColor: 'bg-red-100 text-red-800' },
 ];
-
-// ─── Upgrade Modal ─────────────────────────────────────────────────────────────
-
-function UpgradeModal({ requiredTier, problemTitle, onClose }: {
-  requiredTier: string; problemTitle: string; onClose: () => void;
-}) {
-  const isMid = requiredTier === 'mid';
-  const tierLabel = isMid ? 'Mid' : 'Pro';
-  const tierPrice = isMid ? '₹200' : '₹700';
-  const features = isMid
-    ? ['Unlock all Medium difficulty problems', 'Curated Study Plans & Topic Quests', 'Priority Code Execution Runner']
-    : ['Unlock all Medium & Hard problems', 'Official Live Contest Participation', 'Detailed Execution Memory Profiling'];
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border border-slate-200">
-        <button onClick={onClose} className="p-2 absolute top-4 right-4 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
-          <X className="w-4 h-4" />
-        </button>
-        <div className="flex justify-center mb-5">
-          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center shadow-inner">
-            <Lock className="w-6 h-6 text-amber-600" />
-          </div>
-        </div>
-        <div className="text-center space-y-2 mb-6">
-          <h2 className="text-lg font-extrabold text-slate-900">{tierLabel} Tier Required</h2>
-          <p className="text-xs text-slate-500 leading-relaxed">
-            <span className="font-bold text-slate-800">{problemTitle}</span> is a{' '}
-            {isMid ? 'Medium' : 'Hard'} problem — available to{' '}
-            <span className="font-bold text-amber-700">{tierLabel}</span> subscribers.
-          </p>
-        </div>
-        <ul className="space-y-2.5 mb-6">
-          {features.map((f) => (
-            <li key={f} className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-              {f}
-            </li>
-          ))}
-        </ul>
-        <div className="space-y-3">
-          <div className="text-center">
-            <span className="text-2xl font-extrabold text-slate-900">{tierPrice}</span>
-            <span className="text-xs text-slate-400 font-medium"> / month</span>
-          </div>
-          <Link
-            href="/pricing"
-            className="btn-primary w-full justify-center text-xs h-10 shadow-md shadow-indigo-600/20"
-          >
-            Upgrade to {tierLabel} Tier
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Sidebar Navigation ────────────────────────────────────────────────────────
-
-function SidebarNav() {
-  const items = [
-    { href: '/problems', label: 'All Problems', icon: LayoutList, active: true },
-    { href: '/problems/library', label: 'Library', icon: Library },
-    { href: '/problems/quest', label: 'Daily Quest', icon: CalendarDays },
-    { href: '/problems/explore', label: 'Explore', icon: Compass },
-    { href: '/problems/study-plans', label: 'Study Plans', icon: BookOpen },
-  ];
-  return (
-    <nav className="w-48 shrink-0 hidden lg:block space-y-1 pt-1">
-      {items.map((item) => {
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-              item.active
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
-            }`}
-          >
-            <Icon className="w-4 h-4 shrink-0" />
-            <span>{item.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
-
-// ─── Calendar Widget ──────────────────────────────────────────────────────────
-
-function CalendarWidget() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const today = now.getDate();
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const DAYS = ['S','M','T','W','T','F','S'];
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells: (number | null)[] = Array(firstDay).fill(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  while (cells.length % 7 !== 0) cells.push(null);
-
-  return (
-    <div className="card p-4 space-y-3.5 border border-slate-200/80 shadow-xs">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
-          <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
-          <span>Daily Quest</span>
-          <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.2 rounded font-bold border border-amber-200">
-            🔥 3 Streak
-          </span>
-        </h3>
-        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-          {MONTHS[month]} {year}
-        </span>
-      </div>
-      <div className="grid grid-cols-7 gap-1">
-        {DAYS.map((d, i) => (
-          <div key={i} className="text-center text-[10px] font-extrabold text-slate-400 py-0.5">{d}</div>
-        ))}
-        {cells.map((d, i) => (
-          <div
-            key={i}
-            className={`text-center text-[11px] py-1 rounded-lg font-mono transition-colors ${
-              !d ? '' : d === today
-                ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white font-extrabold shadow-sm'
-                : d < today
-                ? 'text-slate-400 font-medium'
-                : 'text-slate-700 hover:bg-slate-100 cursor-pointer font-semibold'
-            }`}
-          >
-            {d ?? ''}
-          </div>
-        ))}
-      </div>
-      <Link href="/problems/quest" className="btn-primary w-full justify-center text-xs h-9 gap-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 shadow-md shadow-indigo-600/20 font-bold">
-        Solve Today's Quest
-      </Link>
-    </div>
-  );
-}
-
-// ─── Trending Companies ────────────────────────────────────────────────────────
-
-function TrendingCompaniesWidget({ onSelectCompany, selectedCompany }: { onSelectCompany?: (name: string) => void; selectedCompany?: string }) {
-  return (
-    <div className="card p-4 space-y-3 border border-slate-200/80 shadow-xs">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
-          <Building2 className="w-4 h-4 text-indigo-500" />
-          <span>Top Companies</span>
-        </h3>
-        {selectedCompany && (
-          <button onClick={() => onSelectCompany?.('')} className="text-[10px] text-rose-500 font-bold hover:underline">
-            Clear
-          </button>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        {TRENDING_COMPANIES.map((c) => {
-          const isSel = selectedCompany === c.name;
-          return (
-            <button
-              key={c.name}
-              type="button"
-              onClick={() => onSelectCompany?.(isSel ? '' : c.name)}
-              className={`inline-flex items-center gap-1.5 text-[11px] font-bold border rounded-xl px-2.5 py-1 transition-all cursor-pointer ${
-                isSel
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                  : `${c.color}`
-              }`}
-            >
-              <span>{c.name}</span>
-              <span className={`text-[10px] ${isSel ? 'text-indigo-200' : 'opacity-70'}`}>{c.count}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─── Problem Table Row ─────────────────────────────────────────────────────────
-
-function ProblemTableRow({ prob, idx, onClick }: {
-  prob: ProblemRow; idx: number; onClick: (p: ProblemRow) => void;
-}) {
-  const isEasy = prob.difficulty === 'Easy';
-  const isMedium = prob.difficulty === 'Medium';
-  const isHard = prob.difficulty === 'Hard';
-
-  const diffBadge = isEasy ? (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Easy
-    </span>
-  ) : isMedium ? (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Medium
-    </span>
-  ) : (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20">
-      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Hard
-    </span>
-  );
-
-  const tierLabel = prob.tier === 'free' ? 'FREE' : prob.tier === 'mid' ? 'MID' : 'PRO';
-  const tierClass = prob.tier === 'free'
-    ? 'bg-slate-100 text-slate-600 border-slate-200'
-    : prob.tier === 'mid'
-    ? 'bg-amber-50 text-amber-700 border-amber-200'
-    : 'bg-purple-50 text-purple-700 border-purple-200';
-
-  if (prob.isLocked) {
-    return (
-      <div
-        role="button"
-        onClick={() => onClick(prob)}
-        className="grid gap-3 px-4 py-3.5 items-center cursor-pointer hover:bg-amber-50/50 transition-colors group border-b border-slate-100 last:border-0"
-        style={{ gridTemplateColumns: '2.5rem 1fr auto auto auto' }}
-      >
-        <span className="text-[11px] text-slate-400 font-mono font-medium">{idx}</span>
-        <div className="flex items-center gap-2.5 min-w-0">
-          <Lock className="w-3.5 h-3.5 text-amber-500 shrink-0 group-hover:text-amber-600" />
-          <span className="text-xs font-bold text-slate-600 truncate group-hover:text-slate-900">{prob.title}</span>
-          <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md shrink-0 hidden sm:inline">{prob.category}</span>
-        </div>
-        <div>{diffBadge}</div>
-        <div className="flex items-center gap-1">
-          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${tierClass}`}>{tierLabel}</span>
-          <Lock className="w-3 h-3 text-amber-500" />
-        </div>
-        <div className="w-20 text-right">
-          <span className="text-[11px] text-slate-400 font-mono font-medium">
-            {prob.acceptanceRate > 0 ? `${prob.acceptanceRate.toFixed(1)}%` : '—'}
-          </span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <Link
-      href={`/problems/${prob.slug}`}
-      className="grid gap-3 px-4 py-3.5 items-center hover:bg-indigo-50/40 transition-colors group border-b border-slate-100 last:border-0"
-      style={{ gridTemplateColumns: '2.5rem 1fr auto auto auto' }}
-    >
-      <span className="text-[11px] text-slate-400 font-mono font-medium">{idx}</span>
-      <div className="flex items-center gap-2.5 min-w-0">
-        <span className="text-xs font-bold text-slate-850 group-hover:text-indigo-600 transition-colors truncate">{prob.title}</span>
-        <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md shrink-0 hidden sm:inline">{prob.category}</span>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-500 shrink-0 transition-all group-hover:translate-x-0.5" />
-      </div>
-      <div>{diffBadge}</div>
-      <div>
-        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${tierClass}`}>{tierLabel}</span>
-      </div>
-      <div className="w-20 text-right">
-        <span className="text-[11px] text-slate-500 font-mono font-semibold">
-          {prob.acceptanceRate > 0 ? `${prob.acceptanceRate.toFixed(1)}%` : '—'}
-        </span>
-      </div>
-    </Link>
-  );
-}
-
-// ─── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function ProblemsPage() {
   const { data: session } = useSession();
@@ -336,8 +90,12 @@ export default function ProblemsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [difficulty, setDifficulty] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
   const [activeTag, setActiveTag] = useState('');
+  const [isTagsExpanded, setIsTagsExpanded] = useState(false);
+  const [companySearch, setCompanySearch] = useState('');
   const [upgradeModal, setUpgradeModal] = useState<{ problem: ProblemRow } | null>(null);
+
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchProblems = useCallback(async (opts: {
@@ -351,7 +109,7 @@ export default function ProblemsPage() {
     const params = new URLSearchParams({ page: String(p), limit: '50' });
     if (s) params.set('search', s);
     if (d) params.set('difficulty', d);
-    if (tag && tag !== 'All Topics') params.set('category', tag);
+    if (tag) params.set('category', tag);
     try {
       const res = await fetch(`/api/problems?${params.toString()}`);
       const data: ProblemListResponse = await res.json();
@@ -397,108 +155,235 @@ export default function ProblemsPage() {
     fetchProblems({ p: newPage });
   };
 
+  const handleRandomProblem = () => {
+    if (problems.length > 0) {
+      const randomIdx = Math.floor(Math.random() * problems.length);
+      const prob = problems[randomIdx];
+      if (prob) {
+        window.location.href = `/problems/${prob.slug}`;
+      }
+    }
+  };
+
+  // Calendar dates
+  const now = new Date();
+  const currentDay = now.getDate();
+  const currentMonth = now.toLocaleString('default', { month: 'short' }).toUpperCase();
+  const currentYear = now.getFullYear();
+
+  const filteredCompanies = TRENDING_COMPANIES.filter(c =>
+    c.name.toLowerCase().includes(companySearch.toLowerCase())
+  );
+
+  const visibleTags = isTagsExpanded ? TOPIC_TAGS : TOPIC_TAGS.slice(0, 8);
+
   return (
-    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      
-      {/* ── TOP STATS & STRIVER BANNER ──────────────────────────── */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="space-y-1.5 z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">
-            <Sparkles className="w-3 h-3 text-indigo-400" /> Striver's SDE Sheet 455 Master Catalog
-          </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-            Curated Data Structures &amp; Algorithms
-          </h1>
-          <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
-            Solve, analyze, and master standard interview problems with multi-language code execution.
-          </p>
-        </div>
-
-        {/* Quick Difficulty Stats Pills */}
-        <div className="flex items-center gap-3 shrink-0 z-10">
-          <div className="px-3.5 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
-            <span className="text-base font-extrabold text-emerald-400">145</span>
-            <p className="text-[10px] text-slate-400 font-bold uppercase">Easy</p>
-          </div>
-          <div className="px-3.5 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
-            <span className="text-base font-extrabold text-amber-400">225</span>
-            <p className="text-[10px] text-slate-400 font-bold uppercase">Medium</p>
-          </div>
-          <div className="px-3.5 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
-            <span className="text-base font-extrabold text-rose-400">85</span>
-            <p className="text-[10px] text-slate-400 font-bold uppercase">Hard</p>
-          </div>
-        </div>
-      </div>
-
+    <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-5">
       <div className="flex gap-6 items-start">
-        {/* Left Sidebar */}
-        <SidebarNav />
 
-        {/* Main Content */}
-        <div className="flex-1 min-w-0 space-y-4">
+        {/* ── LEFT SIDEBAR NAVIGATION ───────────────────────────── */}
+        <aside className="w-44 shrink-0 hidden lg:flex flex-col gap-6 pt-1">
+          {/* Main Links */}
+          <nav className="space-y-1">
+            <Link
+              href="/problems"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-900 transition-colors"
+            >
+              <LayoutList className="w-4 h-4 text-slate-700" />
+              <span>Problems</span>
+            </Link>
+            <Link
+              href="/problems/library"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            >
+              <Library className="w-4 h-4 text-slate-500" />
+              <span>Library</span>
+            </Link>
+            <Link
+              href="/problems/quest"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            >
+              <CalendarDays className="w-4 h-4 text-slate-500" />
+              <span>Quest</span>
+            </Link>
+            <Link
+              href="/problems/explore"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            >
+              <Compass className="w-4 h-4 text-slate-500" />
+              <span>Explore</span>
+            </Link>
+            <Link
+              href="/problems/study-plans"
+              className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            >
+              <GraduationCap className="w-4 h-4 text-slate-500" />
+              <span>Study Plan</span>
+            </Link>
+          </nav>
 
-          {/* Topics & Tags Chips */}
-          <div className="card p-4 border border-slate-200/80 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5 uppercase tracking-wider">
-                <TrendingUp className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Categories &amp; Topic Tags</span>
-              </h2>
-              {activeTag && activeTag !== 'All Topics' && (
-                <button
-                  onClick={() => handleTag('')}
-                  className="text-[10px] text-rose-500 font-bold flex items-center gap-1 hover:text-rose-600 hover:underline cursor-pointer"
-                >
-                  <X className="w-3 h-3" /> Clear Tag
-                </button>
-              )}
+          {/* My Lists Section */}
+          <div className="space-y-2 pt-2 border-t border-slate-200">
+            <div className="flex items-center justify-between px-3 text-xs font-bold text-slate-700">
+              <span>My Lists</span>
+              <div className="flex items-center gap-1 text-slate-400">
+                <button type="button" className="hover:text-slate-700 p-0.5"><Plus className="w-3.5 h-3.5" /></button>
+                <button type="button" className="hover:text-slate-700 p-0.5"><ChevronDown className="w-3.5 h-3.5" /></button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">
+              <span className="flex items-center gap-2">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span className="font-medium">Favorite</span>
+              </span>
+              <Lock className="w-3 h-3 text-slate-400" />
+            </div>
+          </div>
+        </aside>
+
+        {/* ── CENTER MAIN CONTENT ────────────────────────────────── */}
+        <main className="flex-1 min-w-0 space-y-5">
+
+          {/* 1. TOP CAROUSEL BANNER CARDS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+            {/* Card 1: Gold Plan Banner */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#fef3c7] via-[#fde68a] to-[#f59e0b] border border-amber-300 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group">
+              <div className="space-y-1 z-10">
+                <div className="w-6 h-6 rounded-lg bg-amber-900/10 flex items-center justify-center">
+                  <Star className="w-3.5 h-3.5 fill-amber-700 text-amber-700" />
+                </div>
+                <h3 className="text-xs font-extrabold text-amber-950 leading-tight">
+                  Unlock Full Experience on SparkCode
+                </h3>
+              </div>
+              <div className="flex items-baseline gap-2 z-10">
+                <span className="text-base font-extrabold text-amber-950">₹200<span className="text-xs font-normal text-amber-800">/mo</span></span>
+                <span className="text-[10px] font-bold bg-amber-900 text-white px-2 py-0.5 rounded-full">Save 56%</span>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-1.5">
-              {TOPIC_CHIPS.map((tag) => {
-                const isSelected = activeTag === tag || (!activeTag && tag === 'All Topics');
-                return (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => handleTag(tag === 'All Topics' ? '' : tag)}
-                    className={`inline-flex items-center px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-600/30'
-                        : 'bg-white text-slate-600 border-slate-200/90 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50'
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                );
-              })}
+            {/* Card 2: Mobile / App Banner */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-950 text-white border border-slate-800 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group">
+              <div className="space-y-1 z-10">
+                <div className="w-6 h-6 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                  <Smartphone className="w-3.5 h-3.5 text-indigo-400" />
+                </div>
+                <h3 className="text-xs font-extrabold text-slate-100 leading-tight">
+                  SparkCode at Your Fingertips
+                </h3>
+                <p className="text-[10px] text-slate-400">WebRTC Code Casting &amp; Chat</p>
+              </div>
+              <span className="text-[10px] font-bold text-indigo-400 flex items-center gap-1 z-10">
+                Try Live Stage <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+
+            {/* Card 3: System Design & Crash Course */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#064e3b] via-[#047857] to-[#10b981] text-white border border-emerald-700 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group">
+              <div className="space-y-1 z-10">
+                <div className="w-6 h-6 rounded-lg bg-emerald-950/40 flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
+                </div>
+                <h3 className="text-xs font-extrabold text-emerald-50 leading-tight">
+                  DSA &amp; System Design Crash Course
+                </h3>
+                <p className="text-[10px] text-emerald-200">System Design for Interviews &amp; Beyond</p>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-200 flex items-center gap-1 z-10">
+                Start Learning <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+
+            {/* Card 4: Striver 455 SDE Sheet */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#4c1d95] via-[#6d28d9] to-[#8b5cf6] text-white border border-violet-700 shadow-sm flex flex-col justify-between h-32 relative overflow-hidden group">
+              <div className="space-y-1 z-10">
+                <div className="w-6 h-6 rounded-lg bg-violet-950/40 flex items-center justify-center">
+                  <BookOpen className="w-3.5 h-3.5 text-violet-300" />
+                </div>
+                <h3 className="text-xs font-extrabold text-violet-50 leading-tight">
+                  Striver's SDE Sheet: 455 Questions
+                </h3>
+                <p className="text-[10px] text-violet-200">Master Data Structures in 30 Days</p>
+              </div>
+              <span className="text-[10px] font-bold text-violet-200 flex items-center gap-1 z-10">
+                Explore Sheet <ChevronRight className="w-3 h-3" />
+              </span>
             </div>
           </div>
 
-          {/* Search, Difficulty Filter & Stats */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <LayoutList className="w-4 h-4 text-indigo-600" />
-                <span>Problem Catalog</span>
-                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
-                  {total} problems
-                </span>
-              </h2>
-            </div>
+          {/* 2. SUB-TAGS WITH COUNTS BAR */}
+          <div className="flex items-center gap-1.5 flex-wrap text-xs text-slate-600">
+            {visibleTags.map((t) => {
+              const isSelected = activeTag === t.name;
+              return (
+                <button
+                  key={t.name}
+                  type="button"
+                  onClick={() => handleTag(t.name)}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-indigo-600 text-white font-bold shadow-xs'
+                      : 'hover:bg-slate-100 text-slate-700'
+                  }`}
+                >
+                  <span>{t.name}</span>
+                  <span className={`text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>
+                    {t.count}
+                  </span>
+                </button>
+              );
+            })}
 
-            <div className="flex flex-wrap gap-2 items-center">
+            <button
+              type="button"
+              onClick={() => setIsTagsExpanded(!isTagsExpanded)}
+              className="text-[11px] font-bold text-slate-500 hover:text-slate-900 flex items-center gap-0.5 px-2 py-1 cursor-pointer"
+            >
+              <span>{isTagsExpanded ? 'Collapse' : 'Expand'}</span>
+              <ChevronDown className={`w-3 h-3 transition-transform ${isTagsExpanded ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {/* 3. MAIN CATEGORY PILLS BAR */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {MAIN_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isSel = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    if (tab.id === 'all') setActiveTag('');
+                    else handleTag(tab.label);
+                  }}
+                  className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all cursor-pointer shrink-0 ${
+                    isSel
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 4. SEARCH & CONTROLS ROW */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+            <div className="flex items-center gap-2">
               {/* Search input */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                 <input
                   id="problems-search"
                   type="text"
-                  placeholder="Search problem title..."
+                  placeholder="Search questions"
                   value={search}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="input pl-8 text-xs h-9 py-0 w-48 sm:w-56 bg-white"
+                  className="input pl-8 text-xs h-9 py-0 w-64 bg-slate-50 border-slate-200 rounded-xl"
                 />
                 {search && (
                   <button onClick={() => handleSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -507,17 +392,17 @@ export default function ProblemsPage() {
                 )}
               </div>
 
-              {/* Difficulty Dropdown */}
+              {/* Difficulty Dropdown Filter */}
               <select
                 id="difficulty-filter"
                 value={difficulty}
                 onChange={(e) => handleDifficulty(e.target.value)}
-                className="input text-xs h-9 py-0 w-36 bg-white font-semibold cursor-pointer"
+                className="input text-xs h-9 py-0 w-32 bg-slate-50 border-slate-200 rounded-xl font-semibold cursor-pointer"
               >
-                <option value="">All Difficulties</option>
-                <option value="Easy">🟢 Easy</option>
-                <option value="Medium">🟡 Medium</option>
-                <option value="Hard">🔴 Hard</option>
+                <option value="">Difficulty</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Med.</option>
+                <option value="Hard">Hard</option>
               </select>
 
               {(search || difficulty || activeTag) && (
@@ -532,63 +417,109 @@ export default function ProblemsPage() {
                 </button>
               )}
             </div>
+
+            {/* Right: Solved Progress & Random Shuffle button */}
+            <div className="flex items-center gap-3 text-xs text-slate-500 font-semibold">
+              <span className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>0/{total} Solved</span>
+              </span>
+
+              <button
+                type="button"
+                onClick={handleRandomProblem}
+                title="Pick Random Problem"
+                className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+              >
+                <Shuffle className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Problems Table Card */}
-          <div className="card overflow-hidden border border-slate-200/90 shadow-sm bg-white">
-            {/* Header row */}
-            <div
-              className="grid gap-3 px-4 py-3 bg-slate-50/80 border-b border-slate-200 text-[10px] font-extrabold uppercase tracking-wider text-slate-400"
-              style={{ gridTemplateColumns: '2.5rem 1fr auto auto auto' }}
-            >
-              <span>#</span>
-              <span>Title</span>
-              <span>Difficulty</span>
-              <span>Access</span>
-              <span className="text-right">Acceptance</span>
-            </div>
-
+          {/* 5. PROBLEM LIST ITEMS */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden divide-y divide-slate-100">
             {loading && (
               <div className="flex flex-col items-center justify-center py-20 gap-2 text-slate-400">
-                <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                <Loader2 className="w-6 h-6 animate-spin text-slate-600" />
                 <span className="text-xs font-semibold">Loading problems...</span>
               </div>
             )}
 
             {!loading && problems.length === 0 && (
               <div className="py-20 text-center space-y-2">
-                <p className="text-slate-600 text-sm font-bold">No problems match your filters</p>
-                <p className="text-slate-400 text-xs">Try selecting a different topic tag or clearing your search.</p>
+                <p className="text-slate-600 text-sm font-bold">No questions found</p>
+                <p className="text-slate-400 text-xs">Try adjusting your keyword search or tag filters.</p>
               </div>
             )}
 
-            {!loading && problems.length > 0 && (
-              <div className="divide-y divide-slate-100">
-                {problems.map((prob, idx) => (
-                  <ProblemTableRow
-                    key={prob.id}
-                    prob={prob}
-                    idx={(page - 1) * 50 + idx + 1}
-                    onClick={(p) => { if (p.isLocked) setUpgradeModal({ problem: p }); }}
-                  />
-                ))}
-              </div>
-            )}
+            {!loading && problems.map((prob, idx) => {
+              const isEasy = prob.difficulty === 'Easy';
+              const isMedium = prob.difficulty === 'Medium';
+              const isHard = prob.difficulty === 'Hard';
+
+              const diffColor = isEasy
+                ? 'text-cyan-600'
+                : isMedium
+                ? 'text-amber-500'
+                : 'text-rose-500';
+
+              const diffLabel = isEasy ? 'Easy' : isMedium ? 'Med.' : 'Hard';
+              const questionNumber = (page - 1) * 50 + idx + 1;
+
+              return (
+                <div
+                  key={prob.id}
+                  className="px-4 py-3 hover:bg-slate-50/80 transition-colors flex items-center justify-between gap-4 group cursor-pointer text-xs"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-slate-400 text-[11px] font-mono w-6 shrink-0">{questionNumber}.</span>
+                    <Link
+                      href={`/problems/${prob.slug}`}
+                      className="font-bold text-slate-800 hover:text-indigo-600 transition-colors truncate"
+                    >
+                      {prob.title}
+                    </Link>
+                  </div>
+
+                  <div className="flex items-center gap-6 shrink-0 font-mono text-[11px]">
+                    <span className="text-slate-400 w-12 text-right">
+                      {prob.acceptanceRate > 0 ? `${prob.acceptanceRate.toFixed(1)}%` : '58.0%'}
+                    </span>
+
+                    <span className={`font-bold w-10 text-right ${diffColor}`}>
+                      {diffLabel}
+                    </span>
+
+                    <div className="w-8 flex items-center justify-end text-slate-300 group-hover:text-slate-400">
+                      {prob.isLocked ? (
+                        <Lock className="w-3.5 h-3.5 text-amber-500" />
+                      ) : (
+                        <div className="flex gap-0.5 items-end h-3">
+                          <span className="w-0.5 h-1.5 bg-slate-300 rounded-xs" />
+                          <span className="w-0.5 h-2.5 bg-slate-300 rounded-xs" />
+                          <span className="w-0.5 h-2 bg-slate-300 rounded-xs" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Pagination */}
+          {/* 6. PAGINATION */}
           {pages > 1 && (
             <div className="flex items-center justify-between pt-2">
               <span className="text-xs font-semibold text-slate-500">
-                Page {page} of {pages} · <strong className="text-slate-800">{total}</strong> problems
+                Page {page} of {pages} · <strong className="text-slate-800">{total}</strong> questions
               </span>
               <div className="flex gap-1">
                 <button
                   onClick={() => handlePage(page - 1)}
                   disabled={page <= 1}
-                  className="btn-secondary text-xs py-1 px-3 h-8 disabled:opacity-40 font-bold"
+                  className="btn-secondary text-xs py-1 px-3 h-8 disabled:opacity-40 font-bold rounded-lg"
                 >
-                  ← Prev
+                  ‹ Prev
                 </button>
                 {Array.from({ length: Math.min(5, pages) }, (_, i) => {
                   const pg = Math.max(1, Math.min(pages - 4, page - 2)) + i;
@@ -596,9 +527,9 @@ export default function ProblemsPage() {
                     <button
                       key={pg}
                       onClick={() => handlePage(pg)}
-                      className={`text-xs py-1 px-3 h-8 rounded-xl border font-bold transition-all ${
+                      className={`text-xs py-1 px-3 h-8 rounded-lg border font-bold transition-all ${
                         pg === page
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-600/20'
+                          ? 'bg-slate-900 text-white border-slate-900'
                           : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                       }`}
                     >
@@ -609,65 +540,161 @@ export default function ProblemsPage() {
                 <button
                   onClick={() => handlePage(page + 1)}
                   disabled={page >= pages}
-                  className="btn-secondary text-xs py-1 px-3 h-8 disabled:opacity-40 font-bold"
+                  className="btn-secondary text-xs py-1 px-3 h-8 disabled:opacity-40 font-bold rounded-lg"
                 >
-                  Next →
+                  Next ›
                 </button>
               </div>
             </div>
           )}
-        </div>
+        </main>
 
-        {/* Right Panel */}
-        <div className="w-72 shrink-0 hidden xl:flex flex-col gap-4">
-          {/* User tier banner */}
-          {session?.user && (
-            <div className="card p-4 border border-slate-200/80 shadow-xs space-y-2">
-              {userTier === 'free' && (
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-slate-800">Free Tier</span>
-                    <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-bold">Standard</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    Easy problems &amp; Study Groups are 100% free forever.
-                  </p>
-                  <Link href="/pricing" className="btn-primary w-full justify-center text-xs h-9 font-bold shadow-md shadow-indigo-600/20">
-                    Unlock Medium &amp; Hard
-                  </Link>
+        {/* ── RIGHT SIDEBAR ──────────────────────────────────────── */}
+        <aside className="w-72 shrink-0 hidden xl:flex flex-col gap-4">
+          
+          {/* Daily Quest Calendar Card (LeetCode Style) */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3.5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <span>Day {currentDay}</span>
+                  <span className="text-[10px] text-slate-400 font-mono">01:17:46 left</span>
+                </h3>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button type="button" className="p-1 text-slate-400 hover:text-slate-700"><ChevronLeft className="w-3.5 h-3.5" /></button>
+                <button type="button" className="p-1 text-slate-400 hover:text-slate-700"><ChevronRight className="w-3.5 h-3.5" /></button>
+                <div className="w-6 h-6 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-[9px] font-extrabold text-rose-600">
+                  8<span className="text-[7px]">AUG</span>
                 </div>
-              )}
-              {userTier === 'mid' && (
-                <div className="space-y-1.5">
-                  <p className="text-xs font-bold text-amber-700 flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> Mid Plan Active
-                  </p>
-                  <p className="text-[11px] text-slate-500">Easy &amp; Medium problems fully unlocked.</p>
-                </div>
-              )}
-              {userTier === 'pro' && (
-                <div className="space-y-1.5">
-                  <p className="text-xs font-bold text-purple-700 flex items-center gap-1.5">
-                    <Star className="w-3.5 h-3.5 fill-purple-500 text-purple-500" /> Pro Plan Active
-                  </p>
-                  <p className="text-[11px] text-slate-500">All 455 problems and live contests unlocked.</p>
-                </div>
-              )}
+              </div>
             </div>
-          )}
 
-          <CalendarWidget />
-          <TrendingCompaniesWidget onSelectCompany={(comp) => handleSearch(comp)} selectedCompany={search} />
-        </div>
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-1 text-center font-mono">
+              {['S','M','T','W','T','F','S'].map((d, i) => (
+                <div key={i} className="text-[9px] font-extrabold text-slate-400 py-0.5">{d}</div>
+              ))}
+              {Array.from({ length: 31 }, (_, i) => {
+                const dayNum = i + 1;
+                const isToday = dayNum === currentDay;
+                const isPast = dayNum < currentDay;
+                return (
+                  <div
+                    key={dayNum}
+                    className={`text-[10px] py-1 rounded-full flex items-center justify-center ${
+                      isToday
+                        ? 'bg-emerald-600 text-white font-extrabold shadow-sm'
+                        : isPast
+                        ? 'text-slate-600 hover:bg-slate-100 cursor-pointer font-medium'
+                        : 'text-slate-300'
+                    }`}
+                  >
+                    {dayNum}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Weekly Premium Pills */}
+            <div className="pt-2 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-bold text-amber-700 flex items-center gap-1">
+                  Weekly Premium <Sparkles className="w-3 h-3 text-amber-500" />
+                </span>
+                <span className="text-[10px] text-slate-400">1 day left</span>
+              </div>
+              <div className="flex items-center gap-1">
+                {['W1', 'W2', 'W3', 'W4', 'W5'].map((w, idx) => (
+                  <span
+                    key={w}
+                    className={`flex-1 text-center py-1 text-[10px] font-bold rounded-lg ${
+                      idx === 1
+                        ? 'bg-amber-500 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-400'
+                    }`}
+                  >
+                    {w}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Redeem & Rules Footer */}
+            <div className="flex items-center justify-between text-[11px] pt-1 text-slate-500 font-medium">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" /> 0 Redeem
+              </span>
+              <button type="button" className="hover:underline text-[10px] text-slate-400">Rules</button>
+            </div>
+          </div>
+
+          {/* Trending Companies Card */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-xs">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-extrabold text-slate-900">Trending Companies</h3>
+              <div className="flex items-center gap-1 text-slate-400">
+                <button type="button" className="p-0.5 hover:text-slate-700"><ChevronLeft className="w-3.5 h-3.5" /></button>
+                <button type="button" className="p-0.5 hover:text-slate-700"><ChevronRight className="w-3.5 h-3.5" /></button>
+              </div>
+            </div>
+
+            {/* Company Search */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search for a company..."
+                value={companySearch}
+                onChange={(e) => setCompanySearch(e.target.value)}
+                className="w-full pl-7 pr-2 py-1.5 text-[11px] bg-slate-50 border border-slate-200 rounded-xl outline-none"
+              />
+            </div>
+
+            {/* Company Badges */}
+            <div className="flex flex-wrap gap-1.5">
+              {filteredCompanies.map((c) => (
+                <button
+                  key={c.name}
+                  type="button"
+                  onClick={() => handleSearch(c.name)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                >
+                  <span>{c.name}</span>
+                  <span className={`text-[9px] px-1 py-0.2 rounded-full font-extrabold ${c.badgeColor}`}>
+                    {c.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
       </div>
 
       {/* Upgrade Modal */}
       {upgradeModal && (
-        <UpgradeModal
-          requiredTier={upgradeModal.problem.requiredTier}
-          problemTitle={upgradeModal.problem.title}
-          onClose={() => setUpgradeModal(null)}
-        />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in"
+          onClick={() => setUpgradeModal(null)}
+        >
+          <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 border border-slate-200">
+            <button onClick={() => setUpgradeModal(null)} className="p-2 absolute top-4 right-4 rounded-xl text-slate-400 hover:text-slate-700">
+              <X className="w-4 h-4" />
+            </button>
+            <div className="text-center space-y-2 mb-6">
+              <h2 className="text-lg font-extrabold text-slate-900">Upgrade Required</h2>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                <span className="font-bold text-slate-800">{upgradeModal.problem.title}</span> is a premium problem.
+              </p>
+            </div>
+            <Link
+              href="/pricing"
+              className="btn-primary w-full justify-center text-xs h-10 shadow-md"
+            >
+              View Subscription Plans
+            </Link>
+          </div>
+        </div>
       )}
     </div>
   );
