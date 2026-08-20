@@ -74,7 +74,7 @@ export function useWebRTC({
     [groupId, currentUserId]
   );
 
-  // Speaking detection on local microphone
+  // Speaking detection on local microphone with background keep-alive
   const setupSpeakingDetection = useCallback((stream: MediaStream) => {
     try {
       const AudioCtx =
@@ -84,6 +84,19 @@ export function useWebRTC({
 
       const audioCtx = new AudioCtx();
       audioContextRef.current = audioCtx;
+
+      // Keep-alive silent node to prevent browser from freezing audio rendering in background
+      try {
+        const osc = audioCtx.createOscillator();
+        const silentGain = audioCtx.createGain();
+        silentGain.gain.value = 0.00001; // virtually inaudible keep-alive signal
+        osc.connect(silentGain);
+        silentGain.connect(audioCtx.destination);
+        osc.start();
+      } catch {
+        // Non-critical fallback
+      }
+
       const analyser = audioCtx.createAnalyser();
       analyser.fftSize = 512;
       analyserRef.current = analyser;
@@ -95,6 +108,10 @@ export function useWebRTC({
       if (speakingCheckIntervalRef.current) clearInterval(speakingCheckIntervalRef.current);
 
       speakingCheckIntervalRef.current = setInterval(() => {
+        // Auto-resume if suspended when switching windows
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
         analyser.getByteFrequencyData(buffer);
         let sum = 0;
         for (let i = 0; i < buffer.length; i++) {
@@ -256,13 +273,44 @@ export function useWebRTC({
     [getOrCreatePeerConnection, sendSignal]
   );
 
+  // Auto-recover audio and resume AudioContext on window focus/tab visibility change
+  useEffect(() => {
+    const handleVisibilityOrFocus = () => {
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume().catch(() => {});
+      }
+      // Ensure all remote audio elements keep playing across app/window switches
+      remoteAudioElementsRef.current.forEach((audioEl) => {
+        if (audioEl.paused && audioEl.srcObject) {
+          audioEl.play().catch(() => {});
+        }
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    window.addEventListener('blur', handleVisibilityOrFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      window.removeEventListener('blur', handleVisibilityOrFocus);
+    };
+  }, []);
+
   // Toggle Microphone
   const setMicEnabled = useCallback(
     async (enabled: boolean): Promise<boolean> => {
       try {
         if (enabled) {
           if (!localAudioTrackRef.current) {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              },
+            });
             const track = stream.getAudioTracks()[0];
             localAudioTrackRef.current = track;
             setLocalAudioStream(stream);

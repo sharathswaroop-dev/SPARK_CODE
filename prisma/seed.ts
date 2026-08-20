@@ -22,6 +22,9 @@ import { step16Problems } from './seeds/step16';
 import { step17Problems } from './seeds/step17';
 import { step18Problems } from './seeds/step18';
 import { step19Problems } from './seeds/step19';
+import { databaseProblems } from './seeds/database';
+import { javascriptProblems } from './seeds/javascript';
+import { concurrencyProblems } from './seeds/concurrency';
 
 const prisma = new PrismaClient();
 
@@ -45,6 +48,9 @@ const allProblems = [
   ...step17Problems,
   ...step18Problems,
   ...step19Problems,
+  ...databaseProblems,
+  ...javascriptProblems,
+  ...concurrencyProblems,
 ];
 
 async function main() {

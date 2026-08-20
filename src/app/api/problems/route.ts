@@ -11,8 +11,8 @@ const tierOrder = { free: 0, mid: 1, pro: 2 };
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const search = searchParams.get('search')?.trim() ?? '';
-  const difficulty = searchParams.get('difficulty') ?? '';
-  const category = searchParams.get('category') ?? '';
+  let difficulty = searchParams.get('difficulty')?.trim() ?? '';
+  let category = searchParams.get('category')?.trim() ?? '';
   const company = searchParams.get('company')?.trim() ?? '';
   const page = Math.max(1, Number(searchParams.get('page') ?? 1));
   const limit = Math.min(100, Math.max(1, Number(searchParams.get('limit') ?? 50)));
@@ -22,22 +22,88 @@ export async function GET(request: Request) {
   const userTierLevel =
     tierOrder[(session?.user?.tier as keyof typeof tierOrder) ?? 'free'] ?? 0;
 
-  const where: Record<string, unknown> = { isActive: true };
-  
-  if (search) {
-    where.OR = [
-      { title: { contains: search } },
-      { category: { contains: search } },
-      { companyTags: { contains: search } },
-    ];
-  }
-  
-  if (company) {
-    where.companyTags = { contains: company };
+  // Build Prisma where clause with AND array for reliable combined filtering
+  const andConditions: Array<Record<string, unknown>> = [{ isActive: true }];
+
+  // 1. Difficulty Normalization
+  if (difficulty) {
+    const dLower = difficulty.toLowerCase();
+    if (dLower === 'easy') difficulty = 'Easy';
+    else if (dLower === 'medium' || dLower === 'med.' || dLower === 'med') difficulty = 'Medium';
+    else if (dLower === 'hard') difficulty = 'Hard';
+    andConditions.push({ difficulty });
   }
 
-  if (difficulty) where.difficulty = difficulty;
-  if (category) where.category = category;
+  // 2. Category & Topic Filtering
+  if (category && category !== 'All Topics' && category !== 'all') {
+    const catLower = category.toLowerCase();
+    if (catLower === 'algorithms') {
+      andConditions.push({
+        category: {
+          notIn: ['Database', 'JavaScript', 'Concurrency'],
+        },
+      });
+    } else if (catLower === 'database' || catLower === 'sql') {
+      andConditions.push({
+        category: {
+          in: ['Database', 'SQL'],
+        },
+      });
+    } else if (catLower === 'javascript' || catLower === 'js') {
+      andConditions.push({
+        category: 'JavaScript',
+      });
+    } else if (catLower === 'concurrency' || catLower === 'multithreading') {
+      andConditions.push({
+        category: 'Concurrency',
+      });
+    } else if (catLower === 'stack & queue' || catLower === 'stack' || catLower === 'queue') {
+      andConditions.push({
+        category: {
+          in: ['Stack & Queue', 'Stack', 'Queue'],
+        },
+      });
+    } else if (catLower === 'heap' || catLower === 'priority queue') {
+      andConditions.push({
+        category: {
+          in: ['Heap', 'Heap (Priority Queue)'],
+        },
+      });
+    } else if (catLower === 'math' || catLower === 'advanced math') {
+      andConditions.push({
+        category: {
+          in: ['Math', 'Advanced Math', 'Advanced Math & Strings'],
+        },
+      });
+    } else {
+      andConditions.push({
+        category: {
+          contains: category,
+        },
+      });
+    }
+  }
+
+  // 3. Search Filter (matches title, description, category, or companyTags)
+  if (search) {
+    andConditions.push({
+      OR: [
+        { title: { contains: search } },
+        { description: { contains: search } },
+        { category: { contains: search } },
+        { companyTags: { contains: search } },
+      ],
+    });
+  }
+
+  // 4. Company Tag Filter
+  if (company) {
+    andConditions.push({
+      companyTags: { contains: company },
+    });
+  }
+
+  const where = { AND: andConditions };
 
   const [problems, total] = await Promise.all([
     prisma.problem.findMany({

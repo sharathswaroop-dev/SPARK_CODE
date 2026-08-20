@@ -65,7 +65,17 @@ export async function POST(request: NextRequest) {
   const userTierLevel = tierOrder[(session.user.tier as keyof typeof tierOrder) ?? 'free'] ?? 0;
   const problemTierLevel = tierOrder[(problem.tier as keyof typeof tierOrder) ?? 'free'] ?? 0;
   if (userTierLevel < problemTierLevel) {
-    return Response.json({ error: 'Upgrade required to submit this problem' }, { status: 403 });
+    const activeUnlock = await prisma.problemAdUnlock.findUnique({
+      where: {
+        userId_problemId: {
+          userId: session.user.id,
+          problemId: problem.id,
+        },
+      },
+    });
+    if (!activeUnlock || activeUnlock.expiresAt <= new Date()) {
+      return Response.json({ error: 'Upgrade required to submit this problem' }, { status: 403 });
+    }
   }
 
   const testCases = problem.testCases;

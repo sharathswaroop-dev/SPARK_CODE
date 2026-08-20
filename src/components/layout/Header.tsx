@@ -2,37 +2,64 @@
 
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { Code2, ChevronDown, LogOut, User, Users, Trophy, MessageSquare } from 'lucide-react';
+import {
+  Code2,
+  ChevronDown,
+  LogOut,
+  User,
+  Users,
+  Trophy,
+  MessageSquare,
+  Menu,
+  X,
+  Swords,
+  Layers,
+  Sparkles,
+  DollarSign
+} from 'lucide-react';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 const NAV_LINKS = [
-  { href: '/playground', label: 'Playground' },
-  { href: '/problems',   label: 'Problems'   },
-  { href: '/groups',     label: 'Groups'     },
-  { href: '/discussion', label: 'Discussion' },
-  { href: '/contests',   label: 'Contests'   },
-  { href: '/pricing',    label: 'Pricing'    },
+  { href: '/playground', label: 'Playground', icon: Code2 },
+  { href: '/problems',   label: 'Problems',   icon: Layers },
+  { href: '/battles',    label: '⚔️ Battles', icon: Swords },
+  { href: '/groups',     label: 'Groups',     icon: Users },
+  { href: '/discussion', label: 'Discussion', icon: MessageSquare },
+  { href: '/pricing',    label: 'Pricing',    icon: DollarSign },
 ];
 
 export function Header() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-slate-200/80 shadow-xs">
       <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
 
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-extrabold text-slate-900 shrink-0 group">
-          <span className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center shadow-xs shadow-indigo-600/30 group-hover:bg-indigo-700 transition-colors">
-            <Code2 className="w-4 h-4 text-white stroke-[2.5]" />
-          </span>
-          <span className="text-sm tracking-tight font-extrabold">SparkCode</span>
-        </Link>
+        {/* Left Side: Mobile Menu Button & Logo */}
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setMobileDrawerOpen((v) => !v)}
+            className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 md:hidden transition"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileDrawerOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
 
-        {/* Nav Links */}
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 font-extrabold text-slate-900 shrink-0 group">
+            <span className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center shadow-xs shadow-indigo-600/30 group-hover:bg-indigo-700 transition-colors">
+              <Code2 className="w-4 h-4 text-white stroke-[2.5]" />
+            </span>
+            <span className="text-sm tracking-tight font-extrabold">SparkCode</span>
+          </Link>
+        </div>
+
+        {/* Desktop Nav Links */}
         <nav className="hidden md:flex items-center gap-0.5">
           {NAV_LINKS.map((link) => {
             const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
@@ -91,9 +118,6 @@ export function Header() {
                   <Link href="/discussion" className="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-lg mx-1 transition-colors" onClick={() => setMenuOpen(false)}>
                     <MessageSquare className="w-3.5 h-3.5 text-indigo-600" /> Discussion
                   </Link>
-                  <Link href="/contests" className="flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium rounded-lg mx-1 transition-colors" onClick={() => setMenuOpen(false)}>
-                    <Trophy className="w-3.5 h-3.5 text-amber-500" /> Contests
-                  </Link>
                   <hr className="my-1 border-slate-100 mx-3" />
                   <button
                     onClick={() => { setMenuOpen(false); signOut({ callbackUrl: '/' }); }}
@@ -112,6 +136,31 @@ export function Header() {
           )}
         </div>
       </div>
+
+      {/* Mobile Drawer Menu */}
+      {mobileDrawerOpen && (
+        <div className="md:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-3 space-y-1 animate-in slide-in-from-top-2">
+          {NAV_LINKS.map((link) => {
+            const Icon = link.icon;
+            const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileDrawerOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition ${
+                  isActive
+                    ? 'bg-indigo-50 text-indigo-700'
+                    : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{link.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </header>
   );
 }

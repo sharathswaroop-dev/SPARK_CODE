@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { MessageSquare, Plus, ThumbsUp, MessageCircle, Loader2, Sparkles, Send } from 'lucide-react';
+import { MessageSquare, Plus, ThumbsUp, MessageCircle, Loader2, Sparkles, Send, X } from 'lucide-react';
 
 interface DiscussionPost {
   id: string;
@@ -103,7 +103,7 @@ export default function DiscussionPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-4 sm:space-y-6">
 
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
@@ -140,7 +140,47 @@ export default function DiscussionPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* Mobile: show comment panel as overlay slide-in */}
+      {activePost && (
+        <div className="lg:hidden fixed inset-0 z-50 flex items-end bg-slate-900/60 backdrop-blur-sm" onClick={() => setActivePost(null)}>
+          <div className="w-full bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-slate-100">
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${CATEGORY_COLORS[activePost.category] ?? CATEGORY_COLORS.General}`}>{activePost.category}</span>
+              <button onClick={() => setActivePost(null)} className="p-1.5 rounded-full bg-slate-100 text-slate-500"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="p-4 space-y-4">
+              <h3 className="font-bold text-slate-900 text-sm leading-snug">{activePost.title}</h3>
+              <p className="text-xs text-slate-500 leading-relaxed whitespace-pre-wrap">{activePost.content}</p>
+              <div className="border-t border-slate-100 pt-3 space-y-3">
+                <span className="section-header"><MessageCircle className="w-3.5 h-3.5" /> Comments ({comments.length})</span>
+                {comments.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic py-3 text-center">No comments yet. Be the first!</p>
+                ) : comments.map((c) => (
+                  <div key={c.id} className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-slate-500">
+                      <span className="font-bold text-slate-700">{c.user.name || 'Developer'}</span>
+                      <span>{new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed">{c.content}</p>
+                  </div>
+                ))}
+                {session?.user ? (
+                  <form onSubmit={handleAddComment} className="flex items-center gap-2 pt-1">
+                    <input type="text" required value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Write a comment..." className="input text-xs h-10" />
+                    <button type="submit" disabled={submittingComment || !newComment.trim()} className="btn-primary text-xs h-10 px-3 shrink-0">
+                      {submittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                    </button>
+                  </form>
+                ) : (
+                  <p className="text-xs text-slate-400 text-center italic">Sign in to comment.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 items-start">
 
         {/* Left: Thread List */}
         <div className="lg:col-span-7 space-y-3">
@@ -190,8 +230,8 @@ export default function DiscussionPage() {
           ))}
         </div>
 
-        {/* Right: Thread Detail + Comments */}
-        <div className="lg:col-span-5 lg:sticky lg:top-20 self-start">
+        {/* Right: Thread Detail + Comments — Desktop Only */}
+        <div className="hidden lg:block lg:col-span-5 lg:sticky lg:top-20 self-start">
           {activePost ? (
             <div className="card p-5 space-y-4">
               <div className="border-b border-slate-100 pb-4 space-y-2.5">

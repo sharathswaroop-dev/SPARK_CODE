@@ -9,36 +9,36 @@ export default function LandingPage() {
   const { data: session } = useSession();
 
   return (
-    <div className="w-full bg-slate-50 text-slate-900 overflow-hidden space-y-20 pb-20">
+    <div className="w-full bg-slate-50 text-slate-900 overflow-hidden space-y-14 sm:space-y-20 pb-14 sm:pb-20">
 
       {/* ── HERO ──────────────────────────────────────────────── */}
-      <section className="relative pt-16 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center space-y-7">
+      <section className="relative pt-12 sm:pt-16 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center space-y-5 sm:space-y-7">
 
-        {/* Eyebrow badge */}
+        {/* Feature Eyebrow Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-50 via-indigo-50 to-emerald-50 border border-indigo-200 text-indigo-700 text-[11px] font-bold shadow-xs">
           <Sparkles className="w-3.5 h-3.5 text-violet-600 fill-violet-600" />
-          WebRTC Live Collaborative Stage &amp; WhatsApp Group Chat
+          AI-Native Coding Battles &amp; WebRTC Collaborative Stage
         </div>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 max-w-4xl mx-auto leading-[1.1]">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-950 max-w-4xl mx-auto leading-[1.1]">
           Write, Present &amp; Cast Code Together{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-pink-600">
             in Real-Time.
           </span>
         </h1>
 
-        <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
+        <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium px-2 sm:px-0">
           SparkCode unites live WebRTC screen &amp; code casting, WhatsApp-grade in-group chat, and server-side code execution across 455+ Striver DSA problems.
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-          <Link href="/groups" className="btn-primary px-6 py-2.5 text-sm gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-md shadow-violet-900/20">
-            <Users className="w-4 h-4" /> Join Live Collaboration
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1">
+          <Link href="/groups" className="btn-primary px-5 sm:px-6 py-2.5 text-xs sm:text-sm gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-md shadow-violet-900/20">
+            <Users className="w-4 h-4" /> Join Live
           </Link>
-          <Link href="/playground" className="btn-secondary px-6 py-2.5 text-sm gap-2">
-            <Terminal className="w-4 h-4" /> Launch Playground
+          <Link href="/playground" className="btn-secondary px-5 sm:px-6 py-2.5 text-xs sm:text-sm gap-2">
+            <Terminal className="w-4 h-4" /> Playground
           </Link>
-          <Link href="/problems" className="btn-secondary px-6 py-2.5 text-sm gap-2">
+          <Link href="/problems" className="btn-secondary px-5 sm:px-6 py-2.5 text-xs sm:text-sm gap-2">
             <BookOpen className="w-4 h-4" /> 455 Problems
           </Link>
         </div>
@@ -119,7 +119,7 @@ def solve_two_sum(nums, target):
       </section>
 
       {/* ── PRICING MATRIX ────────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <section className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-extrabold text-slate-950">Indian Market Pricing</h2>
           <p className="text-slate-500 text-sm font-medium">Simple, transparent tiers. All prices in INR.</p>

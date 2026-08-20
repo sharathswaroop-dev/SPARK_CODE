@@ -301,7 +301,14 @@ export default function GroupWorkspacePage({ params }: { params: Promise<{ id: s
       setVideoActive(false);
     } else {
       try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
         streamRef.current = mediaStream;
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = mediaStream;

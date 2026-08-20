@@ -273,25 +273,25 @@ export default function GroupsCollaborationPage() {
   return (
     <div className="min-h-screen bg-[#0d0e12] text-slate-100 flex flex-col font-sans select-none">
       {/* ── TOP NAV BAR (Google Meet Style) ── */}
-      <header className="h-16 px-4 sm:px-6 border-b border-slate-800/80 bg-[#121318] flex items-center justify-between gap-4 z-40 sticky top-0">
+      <header className="h-14 sm:h-16 px-3 sm:px-6 border-b border-slate-800/80 bg-[#121318] flex items-center justify-between gap-2 sm:gap-4 z-40 sticky top-0">
         {/* Left: SparkCode Branding */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-violet-600/30">
-            <Radio className="w-5 h-5" />
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-violet-600/30">
+            <Radio className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
-          <span className="text-base sm:text-lg font-extrabold text-white tracking-tight">
-            SparkCode <span className="text-violet-400 font-bold text-sm">Meet</span>
+          <span className="text-sm sm:text-base font-extrabold text-white tracking-tight">
+            SparkCode <span className="text-violet-400 font-bold text-xs sm:text-sm hidden xs:inline">Meet</span>
           </span>
         </div>
 
-        {/* Center: Search / Code Input & New Button */}
-        <div className="flex-1 max-w-2xl flex items-center justify-center gap-3">
+        {/* Center: Join input + New Button */}
+        <div className="flex-1 max-w-2xl flex items-center justify-center gap-2">
           {/* Join input pill */}
           <form
             onSubmit={handleJoinRoom}
-            className="w-full max-w-md flex items-center bg-[#1a1b22] border border-slate-700/70 rounded-full px-3 py-1.5 focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-500/20 transition-all shadow-inner"
+            className="w-full flex items-center bg-[#1a1b22] border border-slate-700/70 rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-500/20 transition-all shadow-inner"
           >
-            <Keyboard className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
+            <Keyboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 mr-1.5 sm:mr-2 shrink-0" />
             <input
               type="text"
               value={roomCodeOrLink}
@@ -300,14 +300,14 @@ export default function GroupsCollaborationPage() {
                 if (joinError) setJoinError('');
               }}
               placeholder="Enter a code or link"
-              className="w-full bg-transparent text-xs sm:text-sm text-slate-200 placeholder-slate-500 outline-none font-medium"
+              className="w-full bg-transparent text-[11px] sm:text-sm text-slate-200 placeholder-slate-500 outline-none font-medium"
             />
             <button
               type="submit"
               disabled={joining || !roomCodeOrLink.trim()}
-              className="ml-1 px-3.5 py-1 rounded-full text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white disabled:opacity-30 disabled:hover:bg-slate-800 transition-colors shrink-0"
+              className="ml-1 px-2.5 sm:px-3.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white disabled:opacity-30 transition-colors shrink-0"
             >
-              {joining ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Join'}
+              {joining ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Join'}
             </button>
           </form>
 
@@ -316,17 +316,17 @@ export default function GroupsCollaborationPage() {
             <button
               type="button"
               onClick={() => setShowNewDropdown((prev) => !prev)}
-              className="px-4 py-2 rounded-full font-bold text-xs sm:text-sm bg-[#34a853] hover:bg-[#2d9249] text-white shadow-md flex items-center gap-1.5 transition-all transform active:scale-95"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold text-xs bg-[#34a853] hover:bg-[#2d9249] text-white shadow-md flex items-center gap-1.5 transition-all active:scale-95"
             >
-              <Plus className="w-4 h-4" />
-              <span>New</span>
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">New</span>
             </button>
 
             {/* Dropdown Options */}
             {showNewDropdown && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowNewDropdown(false)} />
-                <div className="absolute right-0 top-full mt-2 w-56 bg-[#1f2027] border border-slate-700 rounded-2xl shadow-2xl z-50 p-1.5 text-xs animate-in zoom-in-95 duration-100">
+                <div className="absolute right-0 top-full mt-2 w-52 sm:w-56 bg-[#1f2027] border border-slate-700 rounded-2xl shadow-2xl z-50 p-1.5 text-xs animate-in zoom-in-95 duration-100">
                   <button
                     type="button"
                     onClick={() => {
@@ -340,7 +340,6 @@ export default function GroupsCollaborationPage() {
                     <Radio className="w-4 h-4 text-violet-400" />
                     <span>Start an instant meeting</span>
                   </button>
-
                   <button
                     type="button"
                     onClick={() => {
@@ -358,32 +357,30 @@ export default function GroupsCollaborationPage() {
           </div>
         </div>
 
-        {/* Right: Help, Settings, Upgrade, User Avatar */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        {/* Right: User Avatar (simplified on mobile) */}
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={() => setShowSafeInfoModal(true)}
-            className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors hidden sm:flex"
+            className="p-1.5 sm:p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors hidden sm:flex"
             title="Help & Security"
           >
-            <HelpCircle className="w-5 h-5" />
+            <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
-
           <Link
             href="/pricing"
-            className="hidden md:inline-flex px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow transition-colors"
+            className="hidden md:inline-flex px-3 py-1.5 rounded-full text-xs font-bold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow transition-colors"
           >
             Upgrade
           </Link>
-
           {session?.user ? (
-            <div className="w-8 h-8 rounded-full bg-[#d81b60] text-white flex items-center justify-center font-bold text-xs shadow-inner">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#d81b60] text-white flex items-center justify-center font-bold text-xs shadow-inner">
               {userInitial}
             </div>
           ) : (
             <Link
               href="/signin"
-              className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white"
+              className="px-3 py-1.5 rounded-full text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white"
             >
               Sign In
             </Link>
@@ -393,8 +390,8 @@ export default function GroupsCollaborationPage() {
 
       {/* ── BODY: LEFT SIDEBAR + MAIN CONTENT VIEW ── */}
       <div className="flex-1 flex overflow-hidden">
-        {/* ── LEFT SIDEBAR: 3 EQUALLY WEIGHTED SECTIONS ── */}
-        <aside className="w-48 sm:w-56 border-r border-slate-800/80 bg-[#121318] flex flex-col py-6 px-3 gap-2 shrink-0">
+        {/* ── LEFT SIDEBAR: Desktop only ── */}
+        <aside className="hidden sm:flex w-52 lg:w-56 border-r border-slate-800/80 bg-[#121318] flex-col py-6 px-3 gap-2 shrink-0">
           {sidebarNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeSection === item.id;
@@ -418,7 +415,7 @@ export default function GroupsCollaborationPage() {
                 >
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-xs sm:text-sm font-semibold tracking-tight leading-tight">
+                <span className="text-sm font-semibold tracking-tight leading-tight">
                   {item.label}
                 </span>
               </button>
@@ -426,8 +423,30 @@ export default function GroupsCollaborationPage() {
           })}
         </aside>
 
-        {/* ── MAIN CONTENT AREA (Dynamically driven by Left Sidebar) ── */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 max-w-5xl mx-auto space-y-6">
+        {/* ── MOBILE BOTTOM TAB BAR ── */}
+        <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#121318] border-t border-slate-800 flex items-center justify-around px-2 py-2" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
+          {sidebarNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveSection(item.id)}
+                className={`flex flex-col items-center justify-center gap-0.5 px-4 py-1.5 rounded-xl transition-all ${
+                  isActive ? 'text-violet-400' : 'text-slate-500'
+                }`}
+              >
+                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
+                <span className="text-[9px] font-bold tracking-tight">{item.label.split(' ')[0]}</span>
+                {isActive && <span className="w-1 h-1 rounded-full bg-violet-400" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* ── MAIN CONTENT AREA ── */}
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-5 sm:space-y-6 pb-20 sm:pb-8">
           {/* Join Error Banner if present */}
           {joinError && (
             <div className="p-3.5 bg-rose-950/60 border border-rose-800 text-rose-300 text-xs font-semibold rounded-2xl flex items-center justify-between animate-in fade-in">

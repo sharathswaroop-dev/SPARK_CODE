@@ -3,11 +3,20 @@ import './globals.css';
 import { SessionProvider } from 'next-auth/react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 
 export const metadata: Metadata = {
   title: 'SparkCode — Collaborative Coding for Study Groups',
   description:
     'Real code execution, curated problem bank, and collaborative study groups for serious learners. Free to start, ₹200/₹700 per month for more.',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,8 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="h-full flex flex-col min-h-screen">
         <SessionProvider>
           <Header />
-          <main className="flex-1 w-full">{children}</main>
+          <main className="flex-1 w-full pb-16 md:pb-0">{children}</main>
           <Footer />
+          <MobileBottomNav />
         </SessionProvider>
       </body>
     </html>

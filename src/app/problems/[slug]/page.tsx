@@ -83,44 +83,124 @@ function DifficultyBadge({ d }: { d: string }) {
   );
 }
 
-function LockedScreen({ tier }: { tier: string }) {
+import { AdRewardModal } from '@/components/AdRewardModal';
+
+function LockedScreen({
+  tier,
+  slug,
+  onUnlocked,
+}: {
+  tier: string;
+  slug: string;
+  onUnlocked: () => void;
+}) {
+  const [adModalOpen, setAdModalOpen] = useState(false);
   const isMid = tier === 'mid';
   const label = isMid ? 'Mid' : 'Pro';
-  const price = isMid ? '\u20b9200' : '\u20b9700';
+  const price = isMid ? '₹200' : '₹700';
   const features = isMid
     ? ['Unlock all Medium problems', 'Curated Study Plans & Topic Quests', 'Priority Execution Runner']
     : ['Unlock all Medium & Hard problems', 'Live Contest Participation', 'Execution Memory Profiling'];
+
   return (
-    <div className="max-w-md mx-auto my-20 text-center space-y-6 px-4">
+    <div className="max-w-lg mx-auto my-12 text-center space-y-6 px-4">
       <div className="flex justify-center">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center shadow-sm">
           <Lock className="w-8 h-8 text-amber-600" />
         </div>
       </div>
       <div className="space-y-2">
-        <h2 className="text-xl font-extrabold text-slate-900">{label} Tier Required</h2>
-        <p className="text-xs text-slate-500 leading-relaxed">
-          This {isMid ? 'Medium' : 'Hard'} problem is available to{' '}
-          <span className="font-bold text-amber-700">{label}</span> subscribers.
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/80 text-amber-800 text-[11px] font-bold">
+          <AlertTriangle className="w-3.5 h-3.5" /> Premium Content
+        </div>
+        <h2 className="text-2xl font-black text-slate-900">{label} Tier Required</h2>
+        <p className="text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
+          This {isMid ? 'Medium' : 'Hard'} problem is reserved for subscribers, but you can also unlock it for{' '}
+          <strong className="text-slate-800 font-bold">12 hours for free</strong> by watching a short sponsor ad!
         </p>
       </div>
-      <ul className="text-left space-y-2">
-        {features.map(f => (
-          <li key={f} className="flex items-center gap-2 text-xs text-slate-600 font-medium">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />{f}
-          </li>
-        ))}
-      </ul>
-      <div className="space-y-2">
-        <p className="text-2xl font-extrabold text-slate-900">{price}<span className="text-xs font-normal text-slate-400 ml-1">/ month</span></p>
-        <Link href="/pricing" className="btn-primary text-xs inline-flex gap-1.5">
-          View Pricing Plans <ExternalLink className="w-3.5 h-3.5" />
-        </Link>
-        <div><Link href="/problems" className="btn-ghost text-xs text-slate-400">\u2190 Back to Problems</Link></div>
+
+      {/* Free Ad Unlock Option */}
+      <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 shadow-md text-left space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="flex h-3 w-3 rounded-full bg-emerald-500 animate-ping" />
+            <span className="text-xs font-black uppercase text-emerald-900 tracking-wide">
+              Free Access Option
+            </span>
+          </div>
+          <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-800">
+            100% Free
+          </span>
+        </div>
+        <p className="text-xs text-emerald-800/90 leading-relaxed">
+          Watch a 15-second sponsor video to get instant <strong>12-hour full access</strong> to solve and submit this problem.
+        </p>
+        <button
+          onClick={() => setAdModalOpen(true)}
+          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 transition hover:scale-[1.01]"
+        >
+          <Play className="w-4 h-4 fill-current" /> Watch 15s Ad to Unlock for 12 Hours
+        </button>
       </div>
+
+      <div className="relative flex py-1 items-center">
+        <div className="flex-grow border-t border-slate-200"></div>
+        <span className="flex-shrink mx-4 text-[11px] font-bold text-slate-400 uppercase tracking-wider">or upgrade permanently</span>
+        <div className="flex-grow border-t border-slate-200"></div>
+      </div>
+
+      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-left space-y-3">
+        <ul className="space-y-1.5">
+          {features.map((f) => (
+            <li key={f} className="flex items-center gap-2 text-xs text-slate-600 font-medium">
+              <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              {f}
+            </li>
+          ))}
+        </ul>
+        <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+          <div>
+            <span className="text-xl font-black text-slate-900">{price}</span>
+            <span className="text-xs text-slate-400 font-medium"> / month</span>
+          </div>
+          <Link href="/pricing" className="btn-primary text-xs inline-flex items-center gap-1.5 py-2 px-4">
+            Get {label} Access <ExternalLink className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      </div>
+
+      <div>
+        <Link href="/problems" className="btn-ghost text-xs text-slate-400 hover:text-slate-600">
+          ← Back to All Problems
+        </Link>
+      </div>
+
+      <AdRewardModal
+        slug={slug}
+        requiredTier={tier}
+        isOpen={adModalOpen}
+        onClose={() => setAdModalOpen(false)}
+        onUnlocked={() => {
+          setAdModalOpen(false);
+          onUnlocked();
+        }}
+      />
     </div>
   );
 }
+
+import { DSAVisualizer } from '@/components/DSAVisualizer';
+import {
+  Sparkles,
+  Sliders,
+  CheckCheck,
+  FileEdit,
+  Cpu,
+  HelpCircle,
+  TrendingUp,
+  BrainCircuit
+} from 'lucide-react';
 
 export default function ProblemDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = use(params);
@@ -134,9 +214,32 @@ export default function ProblemDetailPage({ params }: { params: Promise<{ slug: 
   // Editor state
   const [language, setLanguage] = useState<LangType>('python');
   const [code, setCode] = useState('');
+  const [editorTheme, setEditorTheme] = useState<'vs-dark' | 'light'>('vs-dark');
+  const [fontSize, setFontSize] = useState<number>(13);
 
   // Left panel tab
-  const [leftTab, setLeftTab] = useState<'description' | 'solutions' | 'submissions'>('description');
+  const [leftTab, setLeftTab] = useState<'description' | 'ai_mentor' | 'visualizer' | 'editorial' | 'notes' | 'submissions'>('description');
+
+  // AI Mentor & Complexity State
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiHint, setAiHint] = useState<{ tier: number; title: string; content: string; takeaway: string } | null>(null);
+  const [aiComplexity, setAiComplexity] = useState<{
+    timeComplexity: string;
+    spaceComplexity: string;
+    verdict: string;
+    bottlenecks: string[];
+    suggestions: string[];
+  } | null>(null);
+  const [aiErrorExplanation, setAiErrorExplanation] = useState<{
+    summary: string;
+    rootCause: string;
+    fixStrategy: string;
+    checklist: string[];
+  } | null>(null);
+
+  // Personal Notes State
+  const [personalNotes, setPersonalNotes] = useState('');
+  const [savedNotesNotice, setSavedNotesNotice] = useState(false);
 
   // Bottom panel
   const [bottomOpen, setBottomOpen] = useState(true);
@@ -149,6 +252,7 @@ export default function ProblemDetailPage({ params }: { params: Promise<{ slug: 
   const [verdict, setVerdict] = useState<string | null>(null);
   const [casesPassed, setCasesPassed] = useState<number | null>(null);
   const [casesTotal, setCasesTotal] = useState<number | null>(null);
+  const [mobileTab, setMobileTab] = useState<'problem' | 'editor' | 'console'>('problem');
 
   useEffect(() => {
     fetchProblem();
@@ -173,6 +277,8 @@ export default function ProblemDetailPage({ params }: { params: Promise<{ slug: 
     }
   };
 
+  const [adUnlockedHours, setAdUnlockedHours] = useState<number | null>(null);
+
   const fetchProblem = async () => {
     setLoading(true);
     setError('');
@@ -188,11 +294,115 @@ export default function ProblemDetailPage({ params }: { params: Promise<{ slug: 
       }
       const data = await res.json();
       setProblem(data);
+      setLockedTier(null);
       if (data.examples?.[0]) setCustomInput(data.examples[0].input);
+
+      // Check if unlocked via ad
+      try {
+        const unlockRes = await fetch(`/api/problems/${resolvedParams.slug}/unlock-ad`);
+        if (unlockRes.ok) {
+          const uData = await unlockRes.json();
+          if (uData.isUnlocked && uData.remainingMinutes) {
+            setAdUnlockedHours(Math.max(1, Math.ceil(uData.remainingMinutes / 60)));
+          }
+        }
+      } catch {}
     } catch (e: any) {
       setError(e.message || 'Failed to load');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load personal notes
+  useEffect(() => {
+    if (!problem) return;
+    const savedNotes = localStorage.getItem(`sparkcode_notes_${problem.slug}`);
+    if (savedNotes) setPersonalNotes(savedNotes);
+  }, [problem]);
+
+  const handleSaveNotes = () => {
+    if (!problem) return;
+    localStorage.setItem(`sparkcode_notes_${problem.slug}`, personalNotes);
+    setSavedNotesNotice(true);
+    setTimeout(() => setSavedNotesNotice(false), 2000);
+  };
+
+  const handleFetchHint = async (tier: number) => {
+    if (!problem) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch('/api/ai/assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'hint',
+          problemId: problem.id,
+          language,
+          hintTier: tier,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAiHint(data);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleAnalyzeComplexity = async () => {
+    if (!problem) return;
+    setAiLoading(true);
+    setLeftTab('ai_mentor');
+    try {
+      const res = await fetch('/api/ai/assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'analyze_complexity',
+          problemId: problem.id,
+          language,
+          code,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAiComplexity(data);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleExplainError = async () => {
+    if (!problem) return;
+    setAiLoading(true);
+    setLeftTab('ai_mentor');
+    try {
+      const res = await fetch('/api/ai/assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'explain_error',
+          problemId: problem.id,
+          language,
+          code,
+          errorDetails: { verdict: verdict || 'RUNTIME_ERROR', stdout, stderr },
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAiErrorExplanation(data);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -262,7 +472,18 @@ export default function ProblemDetailPage({ params }: { params: Promise<{ slug: 
     );
   }
 
-  if (lockedTier) return <LockedScreen tier={lockedTier} />;
+  if (lockedTier) {
+    return (
+      <LockedScreen
+        tier={lockedTier}
+        slug={resolvedParams.slug}
+        onUnlocked={() => {
+          setLockedTier(null);
+          fetchProblem();
+        }}
+      />
+    );
+  }
 
   if (error || !problem) {
     return (
@@ -279,44 +500,92 @@ export default function ProblemDetailPage({ params }: { params: Promise<{ slug: 
   return (
     <div className="flex flex-col h-[calc(100vh-56px)] bg-slate-100 overflow-hidden">
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-2 bg-white border-b border-slate-200 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-white border-b border-slate-200 shrink-0">
         <Link href="/problems" className="text-[10px] text-indigo-600 font-bold hover:underline shrink-0">
-          \u2190 Problems
+          ← Problems
         </Link>
         <span className="text-slate-300">|</span>
-        <h1 className="text-sm font-extrabold text-slate-900 truncate flex-1">{problem.title}</h1>
+        <h1 className="text-xs sm:text-sm font-extrabold text-slate-900 truncate flex-1">{problem.title}</h1>
+        {adUnlockedHours !== null && (
+          <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-extrabold text-emerald-700 bg-emerald-100 border border-emerald-300 px-1.5 sm:px-2 py-0.5 rounded-full animate-pulse">
+            ⏳ {adUnlockedHours}h
+          </span>
+        )}
         <DifficultyBadge d={problem.difficulty} />
-        <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded uppercase">
+        <span className="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded uppercase hidden sm:inline">
           {problem.category}
         </span>
         {problem.acceptanceRate > 0 && (
           <span className="text-[10px] text-slate-400 font-mono hidden md:inline">
-            {problem.acceptanceRate.toFixed(1)}% accepted
+            {problem.acceptanceRate.toFixed(1)}% acc
           </span>
         )}
       </div>
 
+      {/* Mobile Segmented View Switcher (< lg screens) */}
+      <div className="lg:hidden flex items-center justify-around bg-white border-b border-slate-200 px-2 py-1 shrink-0 text-xs font-bold gap-1 shadow-xs">
+        <button
+          type="button"
+          onClick={() => setMobileTab('problem')}
+          className={`flex-1 py-1.5 rounded-lg text-center transition ${
+            mobileTab === 'problem'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          📄 Problem
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('editor')}
+          className={`flex-1 py-1.5 rounded-lg text-center transition ${
+            mobileTab === 'editor'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          💻 Code Editor
+        </button>
+        <button
+          type="button"
+          onClick={() => { setMobileTab('console'); setBottomOpen(true); }}
+          className={`flex-1 py-1.5 rounded-lg text-center transition ${
+            mobileTab === 'console'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          ⚡ Output
+        </button>
+      </div>
+
       {/* Main area */}
-      <div className="flex flex-1 gap-2 p-2 overflow-hidden min-h-0">
+      <div className="flex flex-1 gap-2 p-1.5 sm:p-2 overflow-hidden min-h-0">
 
         {/* Left Panel */}
-        <div className="flex flex-col w-[420px] shrink-0 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs">
-          <div className="flex items-center border-b border-slate-200 px-2 gap-0 shrink-0 bg-slate-50">
+        <div className={`flex flex-col w-full lg:w-[440px] shrink-0 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs ${
+          mobileTab === 'problem' ? 'flex flex-1' : 'hidden lg:flex'
+        }`}>
+          <div className="flex items-center border-b border-slate-200 px-1.5 gap-0 shrink-0 bg-slate-50 overflow-x-auto scrollbar-none">
             {([
               { key: 'description', label: 'Description', icon: FileText },
-              { key: 'solutions', label: 'Solutions', icon: Lightbulb },
+              { key: 'ai_mentor', label: 'AI Mentor', icon: Sparkles },
+              { key: 'visualizer', label: 'Visualizer', icon: Cpu },
+              { key: 'editorial', label: 'Editorial', icon: Lightbulb },
+              { key: 'notes', label: 'Notes', icon: FileEdit },
               { key: 'submissions', label: 'Submissions', icon: Clock },
             ] as const).map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setLeftTab(key)}
-                className={`flex items-center gap-1.5 px-3 py-2.5 text-[11px] font-semibold border-b-2 transition-colors ${
+                className={`flex items-center gap-1 px-2.5 py-2.5 text-[11px] font-bold border-b-2 whitespace-nowrap transition-colors ${
                   leftTab === key
-                    ? 'border-indigo-600 text-indigo-700'
+                    ? 'border-indigo-600 text-indigo-700 bg-white'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
-                <Icon className="w-3 h-3" />{label}
+                <Icon className={`w-3 h-3 ${key === 'ai_mentor' ? 'text-purple-600' : ''}`} />
+                {label}
               </button>
             ))}
           </div>
@@ -359,69 +628,267 @@ export default function ProblemDetailPage({ params }: { params: Promise<{ slug: 
               </div>
             )}
 
-            {leftTab === 'solutions' && (
-              <div className="p-5 space-y-4">
-                <div className="flex items-center gap-2 text-slate-400 text-xs">
-                  <Lightbulb className="w-4 h-4 text-amber-400" />
-                  <span>Solutions & Hints</span>
+            {/* AI MENTOR & ASSISTANT TAB */}
+            {leftTab === 'ai_mentor' && (
+              <div className="p-5 space-y-5">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-black text-slate-900">AI Coding Assistant</h3>
+                      <p className="text-[10px] text-slate-500">Socratic hints & complexity analysis</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                  <p className="text-[11px] font-bold text-indigo-700 mb-1">Approach Tip</p>
-                  <p className="text-[11px] text-indigo-600 leading-relaxed">
-                    Test your solution with single elements, empty inputs, and large boundary values before submitting.
+
+                {/* Socratic Progressive Hints */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                    <BrainCircuit className="w-3.5 h-3.5 text-purple-600" />
+                    Socratic Progressive Hints
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[1, 2, 3].map((tier) => (
+                      <button
+                        key={tier}
+                        onClick={() => handleFetchHint(tier)}
+                        disabled={aiLoading}
+                        className="py-2 px-2 text-[10px] font-bold rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition disabled:opacity-50"
+                      >
+                        {tier === 1 ? 'Hint 1 (Pattern)' : tier === 2 ? 'Hint 2 (Steps)' : 'Hint 3 (Edge)'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {aiHint && (
+                    <div className="p-4 rounded-xl bg-purple-50/70 border border-purple-200 space-y-2 animate-in fade-in duration-200">
+                      <div className="text-xs font-extrabold text-purple-900">{aiHint.title}</div>
+                      <div className="text-xs text-purple-800 leading-relaxed whitespace-pre-wrap">
+                        {aiHint.content}
+                      </div>
+                      <div className="text-[10px] font-bold text-purple-600 bg-purple-100/60 p-2 rounded-lg">
+                        💡 Key Takeaway: {aiHint.takeaway}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Big-O Complexity Analyzer */}
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                      <Cpu className="w-3.5 h-3.5 text-indigo-600" />
+                      Big-O Complexity Review
+                    </label>
+                    <button
+                      onClick={handleAnalyzeComplexity}
+                      disabled={aiLoading}
+                      className="text-[10px] font-extrabold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200"
+                    >
+                      {aiLoading ? 'Analyzing...' : 'Analyze Editor Code'}
+                    </button>
+                  </div>
+
+                  {aiComplexity && (
+                    <div className="p-4 rounded-xl bg-slate-900 text-white space-y-3 shadow-md animate-in fade-in duration-200">
+                      <div className="grid grid-cols-2 gap-2 text-center">
+                        <div className="p-2 rounded-lg bg-slate-800 border border-slate-700">
+                          <div className="text-[10px] text-slate-400 font-bold">Time Complexity</div>
+                          <div className="text-sm font-black text-amber-400 font-mono mt-0.5">
+                            {aiComplexity.timeComplexity}
+                          </div>
+                        </div>
+                        <div className="p-2 rounded-lg bg-slate-800 border border-slate-700">
+                          <div className="text-[10px] text-slate-400 font-bold">Space Complexity</div>
+                          <div className="text-sm font-black text-emerald-400 font-mono mt-0.5">
+                            {aiComplexity.spaceComplexity}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-[11px] text-slate-300 font-medium leading-relaxed">
+                        {aiComplexity.verdict}
+                      </div>
+
+                      <div className="space-y-1 text-[10px] text-slate-400">
+                        {aiComplexity.bottlenecks.map((b, i) => (
+                          <div key={i} className="flex items-start gap-1">
+                            <span className="text-amber-400">•</span> {b}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* AI Error Explainer Card */}
+                {aiErrorExplanation && (
+                  <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 space-y-2 animate-in fade-in duration-200">
+                    <div className="text-xs font-black text-rose-900">
+                      🐞 {aiErrorExplanation.summary}
+                    </div>
+                    <p className="text-xs text-rose-800 leading-relaxed">
+                      {aiErrorExplanation.rootCause}
+                    </p>
+                    <div className="p-2.5 rounded-lg bg-white border border-rose-200 text-xs text-slate-700 space-y-1 font-medium">
+                      <div className="font-bold text-rose-700">Fix Strategy:</div>
+                      <div>{aiErrorExplanation.fixStrategy}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* DSA VISUALIZER TAB */}
+            {leftTab === 'visualizer' && (
+              <div className="p-2">
+                <DSAVisualizer />
+              </div>
+            )}
+
+            {/* EDITORIAL TAB */}
+            {leftTab === 'editorial' && (
+              <div className="p-5 space-y-4">
+                <div className="flex items-center gap-2 text-xs font-black text-slate-900">
+                  <Lightbulb className="w-4 h-4 text-amber-500" />
+                  <span>Official Editorial & Solution Guide</span>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs text-slate-700 leading-relaxed">
+                  <div className="font-bold text-slate-900">Recommended Optimal Approach:</div>
+                  <p>
+                    1. Utilize hash mapping or two-pointer invariants to achieve linear $O(N)$ runtime.
+                  </p>
+                  <p>
+                    2. Maintain constant auxiliary space $O(1)$ whenever possible to maximize memory efficiency.
                   </p>
                 </div>
               </div>
             )}
 
+            {/* PERSONAL NOTES TAB */}
+            {leftTab === 'notes' && (
+              <div className="p-5 space-y-3 h-full flex flex-col">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
+                    <FileEdit className="w-4 h-4 text-indigo-600" />
+                    <span>Personal Scratchpad & Notes</span>
+                  </div>
+                  <button
+                    onClick={handleSaveNotes}
+                    className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold rounded-lg transition"
+                  >
+                    {savedNotesNotice ? 'Saved ✓' : 'Save Notes'}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400">Notes are auto-saved to local browser storage for this problem.</p>
+                <textarea
+                  value={personalNotes}
+                  onChange={(e) => setPersonalNotes(e.target.value)}
+                  placeholder="Write your key takeaways, time complexity thoughts, or edge case reminders here..."
+                  className="w-full flex-1 min-h-[260px] p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 resize-none focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+            )}
+
+            {/* SUBMISSIONS TAB */}
             {leftTab === 'submissions' && (
               <div className="p-5 text-center space-y-2 py-8">
                 <Clock className="w-8 h-8 text-slate-300 mx-auto" />
                 <p className="text-xs text-slate-500 font-semibold">Submissions History</p>
-                <p className="text-[10px] text-slate-400">Your recent submissions are evaluated live upon clicking Submit.</p>
+                <p className="text-[10px] text-slate-400">Click submit on the right to evaluate your code live.</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Panel */}
-        <div className="flex flex-col flex-1 min-w-0 gap-2 overflow-hidden">
-          <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl shrink-0 shadow-xs">
-            <Code2 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-            <select
-              value={language}
-              onChange={e => setLanguage(e.target.value as LangType)}
-              className="input text-xs h-7 py-0 w-44"
-            >
-              <option value="python">Python 3.10</option>
-              <option value="javascript">JavaScript (Node 18)</option>
-              <option value="java">Java 15</option>
-              <option value="cpp">C++ (GCC 11 / C++17)</option>
-            </select>
+        {/* Right Panel: Monaco Editor & Controls */}
+        <div className={`flex flex-col flex-1 min-w-0 gap-2 overflow-hidden ${
+          mobileTab !== 'problem' ? 'flex' : 'hidden lg:flex'
+        }`}>
+          {/* Top Editor Control Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl shrink-0 shadow-xs">
+            <div className="flex items-center gap-2">
+              <Code2 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <select
+                value={language}
+                onChange={e => setLanguage(e.target.value as LangType)}
+                className="input text-xs h-7 py-0 w-36"
+              >
+                <option value="python">Python 3.10</option>
+                <option value="javascript">JavaScript (Node)</option>
+                <option value="java">Java 15</option>
+                <option value="cpp">C++ (GCC 11)</option>
+              </select>
 
-            <button
-              onClick={resetCode}
-              className="btn-ghost text-xs h-7 px-2 flex items-center gap-1 text-slate-400 hover:text-slate-600 ml-auto"
-              title="Reset to starter code"
-            >
-              <RotateCcw className="w-3 h-3" /> Reset
-            </button>
-            <button
-              onClick={handleRun}
-              disabled={running || submitting}
-              className="btn-secondary text-xs h-8 px-3 flex items-center gap-1.5 disabled:opacity-50"
-            >
-              {running ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-              Run
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={running || submitting}
-              className="btn-primary text-xs h-8 px-3 flex items-center gap-1.5 disabled:opacity-50"
-            >
-              {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
-              Submit
-            </button>
+              {/* Theme Switcher */}
+              <select
+                value={editorTheme}
+                onChange={e => setEditorTheme(e.target.value as any)}
+                className="input text-xs h-7 py-0 w-24"
+              >
+                <option value="vs-dark">Dark</option>
+                <option value="light">Light</option>
+              </select>
+
+              {/* Font Size Adjusters */}
+              <div className="flex items-center gap-0.5 bg-slate-100 p-0.5 rounded-lg">
+                <button
+                  onClick={() => setFontSize(Math.max(11, fontSize - 1))}
+                  className="px-1.5 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-slate-200 rounded"
+                  title="Decrease font size"
+                >
+                  A-
+                </button>
+                <span className="text-[10px] font-mono font-bold text-slate-700 px-1">{fontSize}</span>
+                <button
+                  onClick={() => setFontSize(Math.min(18, fontSize + 1))}
+                  className="px-1.5 py-0.5 text-[10px] font-bold text-slate-600 hover:bg-slate-200 rounded"
+                  title="Increase font size"
+                >
+                  A+
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAnalyzeComplexity}
+                disabled={aiLoading}
+                className="btn-ghost text-xs h-7 px-2.5 flex items-center gap-1 text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200"
+                title="Review Big-O Complexity"
+              >
+                <Sparkles className="w-3 h-3 text-purple-600" />
+                AI Review
+              </button>
+
+              <button
+                onClick={resetCode}
+                className="btn-ghost text-xs h-7 px-2 flex items-center gap-1 text-slate-400 hover:text-slate-600"
+                title="Reset to starter code"
+              >
+                <RotateCcw className="w-3 h-3" /> Reset
+              </button>
+
+              <button
+                onClick={handleRun}
+                disabled={running || submitting}
+                className="btn-secondary text-xs h-8 px-3 flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {running ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                Run
+              </button>
+
+              <button
+                onClick={handleSubmit}
+                disabled={running || submitting}
+                className="btn-primary text-xs h-8 px-3.5 flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                Submit
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 rounded-xl overflow-hidden border border-slate-800 bg-[#1e1e1e] shadow-xs min-h-0">
@@ -435,119 +902,97 @@ export default function ProblemDetailPage({ params }: { params: Promise<{ slug: 
               height="100%"
               language={language === 'javascript' ? 'javascript' : language === 'cpp' ? 'cpp' : language}
               value={code}
+              theme={editorTheme}
               onChange={handleCodeChange}
-              theme="vs-dark"
               options={{
-                fontSize: 13,
-                fontFamily: 'JetBrains Mono, Fira Code, monospace',
+                fontSize: fontSize,
                 minimap: { enabled: false },
-                lineHeight: 20,
-                padding: { top: 12 },
                 scrollBeyondLastLine: false,
-                renderLineHighlight: 'gutter',
-                bracketPairColorization: { enabled: true },
+                lineNumbers: 'on',
+                tabSize: 2,
+                automaticLayout: true,
               }}
             />
           </div>
 
-          {/* Bottom Console Panel */}
-          <div className={
-            `bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col shrink-0 transition-all ${
-              bottomOpen ? 'h-52' : 'h-10'
-            }`
-          }>
-            <div className="flex items-center border-b border-slate-200 px-2 gap-0 shrink-0 bg-slate-50 rounded-t-xl">
-              <button
-                onClick={() => { setBottomTab('testcase'); setBottomOpen(true); }}
-                className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold border-b-2 transition-colors ${
-                  bottomTab === 'testcase' && bottomOpen
-                    ? 'border-indigo-600 text-indigo-700'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Terminal className="w-3 h-3" />Testcase
-              </button>
-              <button
-                onClick={() => { setBottomTab('result'); setBottomOpen(true); }}
-                className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold border-b-2 transition-colors ${
-                  bottomTab === 'result' && bottomOpen
-                    ? 'border-indigo-600 text-indigo-700'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <BarChart2 className="w-3 h-3" />Test Result
+          {/* Bottom Panel */}
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs shrink-0">
+            <div className="flex items-center justify-between px-3 py-1.5 bg-slate-50 border-b border-slate-200">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => { setBottomTab('testcase'); setBottomOpen(true); }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                    bottomTab === 'testcase' ? 'bg-white shadow-xs text-indigo-700 font-bold' : 'text-slate-500'
+                  }`}
+                >
+                  Custom Testcase
+                </button>
+                <button
+                  onClick={() => { setBottomTab('result'); setBottomOpen(true); }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition ${
+                    bottomTab === 'result' ? 'bg-white shadow-xs text-indigo-700 font-bold' : 'text-slate-500'
+                  }`}
+                >
+                  Execution Result
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
                 {verdict && (
-                  <span className={`ml-1 text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                    verdict === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-700' :
-                    verdict === 'COMPILATION_ERROR' ? 'bg-amber-100 text-amber-800' :
-                    verdict === 'TIME_LIMIT_EXCEEDED' ? 'bg-orange-100 text-orange-800' : 'bg-rose-100 text-rose-700'
-                  }`}>
-                    {verdict}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-xs font-extrabold px-2 py-0.5 rounded ${
+                        verdict === 'ACCEPTED'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-rose-100 text-rose-800'
+                      }`}
+                    >
+                      {verdict}
+                    </span>
+                    {verdict !== 'ACCEPTED' && (
+                      <button
+                        onClick={handleExplainError}
+                        className="text-[10px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md flex items-center gap-1"
+                      >
+                        <Sparkles className="w-3 h-3" /> Explain Error with AI
+                      </button>
+                    )}
+                  </div>
                 )}
-              </button>
-              <button
-                onClick={() => setBottomOpen(v => !v)}
-                className="ml-auto p-1.5 text-slate-400 hover:text-slate-600 mr-1"
-              >
-                {bottomOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
-              </button>
+                <button
+                  onClick={() => setBottomOpen(!bottomOpen)}
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded"
+                >
+                  {bottomOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
+                </button>
+              </div>
             </div>
 
             {bottomOpen && (
-              <div className="flex-1 overflow-auto p-3 text-[11px] font-mono">
-                {bottomTab === 'testcase' && (
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                      Custom Input (stdin)
-                    </label>
-                    <textarea
-                      value={customInput}
-                      onChange={e => setCustomInput(e.target.value)}
-                      className="w-full h-24 bg-slate-950 text-emerald-300 border border-slate-700 rounded-lg p-2.5 text-[11px] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      placeholder="Enter custom stdin input..."
-                      spellCheck={false}
-                    />
-                  </div>
-                )}
-
-                {bottomTab === 'result' && (
-                  <div className="space-y-2">
-                    {(running || submitting) && (
-                      <div className="flex items-center gap-2 text-slate-400">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
-                        <span>{running ? 'Running execution...' : 'Judging against test cases...'}</span>
-                      </div>
-                    )}
-                    {verdict && (
-                      <div className={`flex items-center gap-2 font-bold text-xs ${
-                        verdict === 'ACCEPTED' ? 'text-emerald-600' :
-                        verdict === 'COMPILATION_ERROR' ? 'text-amber-600' :
-                        verdict === 'TIME_LIMIT_EXCEEDED' ? 'text-orange-600' : 'text-rose-600'
-                      }`}>
-                        {verdict === 'ACCEPTED' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                        <span>{verdict}</span>
-                        {casesPassed !== null && (
-                          <span className="text-slate-400 font-normal text-[10px]">
-                            ({casesPassed}/{casesTotal} test cases passed)
-                          </span>
-                        )}
+              <div className="p-3 max-h-36 overflow-y-auto font-mono text-xs">
+                {bottomTab === 'testcase' ? (
+                  <textarea
+                    value={customInput}
+                    onChange={e => setCustomInput(e.target.value)}
+                    placeholder="Enter custom standard input..."
+                    className="w-full h-24 bg-slate-50 border border-slate-200 rounded-lg p-2 resize-none text-slate-800 focus:outline-none focus:border-indigo-500"
+                  />
+                ) : (
+                  <div className="space-y-1 text-slate-800">
+                    {stdout && (
+                      <div>
+                        <span className="text-slate-400 font-bold text-[10px] uppercase">Standard Output:</span>
+                        <pre className="p-2 bg-slate-50 rounded border border-slate-200 mt-1 whitespace-pre-wrap">{stdout}</pre>
                       </div>
                     )}
                     {stderr && (
-                      <div className="text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-2.5">
-                        <span className="text-[9px] font-bold uppercase tracking-wider block mb-1 text-rose-700">Error / Compiler Output</span>
-                        <pre className="whitespace-pre-wrap text-[10px]">{stderr}</pre>
-                      </div>
-                    )}
-                    {stdout && (
                       <div>
-                        <span className="text-[9px] font-bold uppercase tracking-wider block mb-1 text-slate-500">Output</span>
-                        <pre className="text-emerald-700 whitespace-pre-wrap">{stdout}</pre>
+                        <span className="text-rose-500 font-bold text-[10px] uppercase">Error Output:</span>
+                        <pre className="p-2 bg-rose-50 text-rose-700 rounded border border-rose-200 mt-1 whitespace-pre-wrap">{stderr}</pre>
                       </div>
                     )}
-                    {!running && !submitting && !verdict && !stdout && !stderr && (
-                      <span className="text-slate-500 italic">Run or submit your code to view judgment.</span>
+                    {!stdout && !stderr && (
+                      <div className="text-slate-400 italic">No output yet. Run or submit your code above.</div>
                     )}
                   </div>
                 )}

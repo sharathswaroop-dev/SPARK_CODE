@@ -20,8 +20,9 @@ model User {
   image         String?
   password      String? // hashed, for credentials provider
   tier          String    @default("free") // "free" | "mid" | "pro"
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  mmr                  Int                   @default(1200)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 
   accounts             Account[]
   sessions             Session[]
@@ -33,6 +34,9 @@ model User {
   discussionComments   DiscussionComment[]
   contestRegistrations ContestRegistration[]
   problemStates        UserProblemState[]
+  adUnlocks            ProblemAdUnlock[]
+  battleParticipants   BattleParticipant[]
+  matchmakingQueue     MatchmakingQueue?
 }
 
 model Account {
@@ -91,6 +95,8 @@ model Problem {
   starterCode     StarterCode[]
   submissions     Submission[]
   contestProblems ContestProblem[]
+  adUnlocks       ProblemAdUnlock[]
+  battleRooms     BattleRoom[]
 }
 
 model ProblemExample {
@@ -284,3 +290,72 @@ model ContestRegistration {
 
   @@unique([contestId, userId])
 }
+
+// ─── Ad-Based Problem Unlocks (12 hours max) ──────────────────────────────────
+
+model ProblemAdUnlock {
+  id        String   @id @default(cuid())
+  userId    String
+  problemId String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId])
+}
+
+// ─── Battle Arena (1v1, 3v3, Team vs Team) ───────────────────────────────────
+
+model BattleRoom {
+  id          String              @id @default(cuid())
+  code        String              @unique
+  mode        String              @default("1v1") // "1v1" | "3v3" | "team"
+  status      String              @default("WAITING") // "WAITING" | "IN_PROGRESS" | "FINISHED"
+  problemId   String
+  isRanked    Boolean             @default(true)
+  startedAt   DateTime?
+  endedAt     DateTime?
+  winnerTeam  String?             // "TEAM_A" | "TEAM_B" | "DRAW"
+  createdAt   DateTime            @default(now())
+
+  problem      Problem             @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  participants BattleParticipant[]
+}
+
+model BattleParticipant {
+  id            String    @id @default(cuid())
+  roomId        String
+  userId        String?
+  team          String    @default("TEAM_A") // "TEAM_A" | "TEAM_B"
+  isBot         Boolean   @default(false)
+  botName       String?
+  botDifficulty String?   // "EASY" | "MEDIUM" | "HARD"
+  score         Int       @default(0)
+  passedCases   Int       @default(0)
+  ratingChange  Int?
+  isFinished    Boolean   @default(false)
+  finishedAt    DateTime?
+
+  room BattleRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+}
+
+model MatchmakingQueue {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  mode          String    @default("1v1") // "1v1" | "3v3" | "team"
+  mmr           Int       @default(1200)
+  difficulty    String    @default("All") // "All" | "Easy" | "Medium" | "Hard"
+  status        String    @default("QUEUED") // "QUEUED" | "MATCHED" | "CANCELLED"
+  matchedRoomId String?
+  joinedAt      DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+

@@ -29,7 +29,31 @@ export async function GET(
 
   const problemTierLevel = tierOrder[(problem.tier as keyof typeof tierOrder) ?? 'free'] ?? 0;
   if (problemTierLevel > userTierLevel) {
-    return Response.json({ error: 'Upgrade required', requiredTier: problem.tier }, { status: 403 });
+    if (session?.user?.id) {
+      const activeUnlock = await prisma.problemAdUnlock.findUnique({
+        where: {
+          userId_problemId: {
+            userId: session.user.id,
+            problemId: problem.id,
+          },
+        },
+      });
+      if (!activeUnlock || activeUnlock.expiresAt <= new Date()) {
+        return Response.json({
+          error: 'Upgrade required',
+          requiredTier: problem.tier,
+          problemId: problem.id,
+          problemTitle: problem.title,
+        }, { status: 403 });
+      }
+    } else {
+      return Response.json({
+        error: 'Upgrade required',
+        requiredTier: problem.tier,
+        problemId: problem.id,
+        problemTitle: problem.title,
+      }, { status: 403 });
+    }
   }
 
   const starterCodeMap = Object.fromEntries(
