@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ─── Auth (NextAuth v5 required tables) ─────────────────────────────────────
@@ -357,5 +358,3 @@ model MatchmakingQueue {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
-
