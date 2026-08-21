@@ -129,9 +129,14 @@ export default function SignInPage() {
         {/* ── Credentials Form ── */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">Email Address</label>
+            <label htmlFor="signin-email" className="text-xs font-bold text-slate-700">
+              Email Address
+            </label>
             <input
+              id="signin-email"
+              name="email"
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -141,9 +146,14 @@ export default function SignInPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">Password</label>
+            <label htmlFor="signin-password" className="text-xs font-bold text-slate-700">
+              Password
+            </label>
             <input
+              id="signin-password"
+              name="password"
               type="password"
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}

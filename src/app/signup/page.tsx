@@ -32,7 +32,6 @@ export default function SignUpPage() {
         throw new Error(data.error || 'Failed to register');
       }
 
-      // Automatically sign in or redirect to Signin on successful sign up
       router.push('/signin?registered=true');
     } catch (err: any) {
       setError(err.message || 'An error occurred during registration.');
@@ -131,9 +130,14 @@ export default function SignUpPage() {
         {/* ── Email Registration Form ── */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">Full Name</label>
+            <label htmlFor="signup-name" className="text-xs font-bold text-slate-700">
+              Full Name
+            </label>
             <input
+              id="signup-name"
+              name="name"
               type="text"
+              autoComplete="name"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -143,9 +147,14 @@ export default function SignUpPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">Email Address</label>
+            <label htmlFor="signup-email" className="text-xs font-bold text-slate-700">
+              Email Address
+            </label>
             <input
+              id="signup-email"
+              name="email"
               type="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -155,9 +164,14 @@ export default function SignUpPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-bold text-slate-700">Password</label>
+            <label htmlFor="signup-password" className="text-xs font-bold text-slate-700">
+              Password
+            </label>
             <input
+              id="signup-password"
+              name="password"
               type="password"
+              autoComplete="new-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
