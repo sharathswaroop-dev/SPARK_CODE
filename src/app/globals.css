@@ -50,6 +50,20 @@
   }
 }
 
+/* ─── Monaco Editor Global Fixes ────────────────────────────────────────── */
+/* Prevents Tailwind CSS from overriding and displaying Monaco's hidden IME inputarea textarea */
+.monaco-editor textarea.inputarea,
+.monaco-editor .inputarea,
+.monaco-editor textarea {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  resize: none !important;
+}
+
 @layer components {
   .btn-primary {
     @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-xs shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed;
