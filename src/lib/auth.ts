@@ -48,9 +48,11 @@ providers.push(
       const parsed = credentialsSchema.safeParse(credentials);
       if (!parsed.success) return null;
 
-      const email = parsed.data.email.toLowerCase().trim();
-      const user = await prisma.user.findUnique({
-        where: { email },
+      const email = parsed.data.email.trim();
+      const user = await prisma.user.findFirst({
+        where: {
+          email: { equals: email, mode: 'insensitive' },
+        },
       });
 
       if (!user || !user.password) return null;
