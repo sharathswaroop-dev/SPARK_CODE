@@ -1,5 +1,11 @@
 FROM node:20-alpine AS base
 
+# Install Python 3, C++ compiler (g++), and Java OpenJDK
+RUN apk add --no-cache python3 py3-pip make g++ openjdk17-jdk
+
+# Ensure python symlink points to python3
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+
 WORKDIR /app
 
 # Install dependencies

@@ -3,7 +3,8 @@
  *
  * Strategy (priority order):
  *  1. If PISTON_URL env var is set → use that isolated containerized Piston instance.
- *  2. Otherwise → spawn a subprocess with sanitized environment and resource watchdogs.
+ *  2. Attempt local subprocess execution with sanitized environment and resource watchdogs.
+ *  3. Fallback to public Piston API (https://emkc.org/api/v2/piston) if compiler/runtime is missing.
  */
 
 import { spawn } from 'child_process';
@@ -31,6 +32,7 @@ export interface ExecuteResult {
 }
 
 const MAX_OUTPUT_BYTES = 512 * 1024; // 512KB maximum output to prevent memory exhaustion
+const PUBLIC_PISTON_URL = 'https://emkc.org/api/v2/piston';
 
 // ─── Piston remote execution (Production Sandboxing) ──────────────────────────
 
@@ -83,12 +85,8 @@ async function runViaPiston(url: string, opts: ExecuteOptions): Promise<ExecuteR
   };
 }
 
-// ─── Local subprocess execution (Hardened for local development) ─────────────
+// ─── Local subprocess execution (Hardened) ───────────────────────────────────
 
-/**
- * Sanitized minimal environment variables for local subprocess execution.
- * Explicitly strips out DATABASE_URL, AUTH_SECRET, API keys, and server secrets.
- */
 function getSanitizedEnv(): NodeJS.ProcessEnv {
   return {
     PATH: process.env.PATH || '',
@@ -97,7 +95,6 @@ function getSanitizedEnv(): NodeJS.ProcessEnv {
     TMP: os.tmpdir(),
     NODE_ENV: 'production',
     PYTHONUNBUFFERED: '1',
-    // Do NOT include process.env.AUTH_SECRET, process.env.DATABASE_URL, etc.
   };
 }
 
@@ -106,9 +103,8 @@ function spawnProcess(
   args: string[],
   stdin: string,
   timeoutMs: number
-): Promise<{ stdout: string; stderr: string; exitCode: number; isTimeLimitExceeded: boolean }> {
+): Promise<{ stdout: string; stderr: string; exitCode: number; isTimeLimitExceeded: boolean; isNotFound?: boolean }> {
   return new Promise((resolve) => {
-    // Spawn with minimal, sanitized environment
     const proc = spawn(cmd, args, {
       env: getSanitizedEnv(),
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -171,6 +167,7 @@ function spawnProcess(
           stderr: msg,
           exitCode: 1,
           isTimeLimitExceeded: false,
+          isNotFound: isEnoent,
         });
       }
     });
@@ -186,6 +183,27 @@ function spawnProcess(
   });
 }
 
+/**
+ * Resolve the python executable command (checks 'python3', 'python').
+ */
+let cachedPythonCmd: string | null = null;
+async function getPythonCommand(): Promise<string> {
+  if (cachedPythonCmd) return cachedPythonCmd;
+
+  // On Linux/macOS/Alpine, python3 is standard; on Windows, python is standard.
+  const candidates = process.platform === 'win32' ? ['python', 'python3', 'py'] : ['python3', 'python'];
+  for (const cmd of candidates) {
+    try {
+      const test = await spawnProcess(cmd, ['--version'], '', 2000);
+      if (test.exitCode === 0 && !test.isNotFound) {
+        cachedPythonCmd = cmd;
+        return cmd;
+      }
+    } catch (_) {}
+  }
+  return process.platform === 'win32' ? 'python' : 'python3';
+}
+
 async function runLocally(opts: ExecuteOptions): Promise<ExecuteResult> {
   const timeoutMs = opts.timeoutMs ?? 5_000;
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sparkcode-'));
@@ -195,7 +213,12 @@ async function runLocally(opts: ExecuteOptions): Promise<ExecuteResult> {
     if (opts.language === 'python') {
       const file = path.join(tmpDir, 'main.py');
       fs.writeFileSync(file, opts.code, 'utf8');
-      const r = await spawnProcess('python', [file], opts.stdin ?? '', timeoutMs);
+      const pyCmd = await getPythonCommand();
+      const r = await spawnProcess(pyCmd, [file], opts.stdin ?? '', timeoutMs);
+      if (r.isNotFound) {
+        // Fallback to public Piston API if local python is missing
+        return await runViaPiston(PUBLIC_PISTON_URL, opts);
+      }
       return { ...r, executionTimeMs: Date.now() - start };
     }
 
@@ -219,6 +242,9 @@ ${opts.code}
 `;
       fs.writeFileSync(file, wrapper, 'utf8');
       const r = await spawnProcess('node', [file], opts.stdin ?? '', timeoutMs);
+      if (r.isNotFound) {
+        return await runViaPiston(PUBLIC_PISTON_URL, opts);
+      }
       return { ...r, executionTimeMs: Date.now() - start };
     }
 
@@ -229,13 +255,13 @@ ${opts.code}
 
       // Compile C++
       const compile = await spawnProcess('g++', ['-std=c++17', '-O2', file, '-o', exe], '', 10_000);
+      if (compile.isNotFound) {
+        return await runViaPiston(PUBLIC_PISTON_URL, opts);
+      }
       if (compile.exitCode !== 0) {
-        const isNotInstalled = compile.stderr.includes('not found') || compile.stderr.includes("Command not found");
         return {
           stdout: '',
-          stderr: isNotInstalled
-            ? 'C++ compiler (g++) is not installed on this server.'
-            : (compile.stderr || 'Compilation failed'),
+          stderr: compile.stderr || 'Compilation failed',
           exitCode: compile.exitCode,
           executionTimeMs: Date.now() - start,
           isCompileError: true,
@@ -253,13 +279,13 @@ ${opts.code}
 
       // Compile Java
       const compile = await spawnProcess('javac', [file], '', 10_000);
+      if (compile.isNotFound) {
+        return await runViaPiston(PUBLIC_PISTON_URL, opts);
+      }
       if (compile.exitCode !== 0) {
-        const isNotInstalled = compile.stderr.includes('not found') || compile.stderr.includes("Command not found");
         return {
           stdout: '',
-          stderr: isNotInstalled
-            ? 'Java compiler (javac) is not installed on this server.'
-            : (compile.stderr || 'Compilation failed'),
+          stderr: compile.stderr || 'Compilation failed',
           exitCode: compile.exitCode,
           executionTimeMs: Date.now() - start,
           isCompileError: true,
@@ -281,7 +307,7 @@ ${opts.code}
 
 /**
  * Execute user code.
- * Uses remote Piston if PISTON_URL is set; otherwise uses hardened local subprocesses.
+ * Uses remote Piston if PISTON_URL is set; otherwise runs locally with automatic Piston fallback.
  */
 export async function pistonExecute(opts: ExecuteOptions): Promise<ExecuteResult> {
   const pistonUrl = process.env.PISTON_URL;
