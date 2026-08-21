@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rate-limit';
 
 const assistantRequestSchema = z.object({
   action: z.enum(['hint', 'analyze_complexity', 'explain_error']),
@@ -28,6 +29,15 @@ export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Rate limit: max 20 AI assistant requests per minute per user
+    const rl = rateLimit(`ai:${session.user.id}`, { windowSeconds: 60, maxRequests: 20 });
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: `AI request limit exceeded. Please wait ${rl.resetSeconds}s before requesting assistance again.` },
+        { status: 429 }
+      );
     }
 
     let body: unknown;

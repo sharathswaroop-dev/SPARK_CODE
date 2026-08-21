@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { pistonExecute, SUPPORTED_LANGUAGES } from '@/lib/piston';
+import { rateLimit } from '@/lib/rate-limit';
 import type { Verdict } from '@/types';
 
 const MAX_CODE_LENGTH = 64_000;
@@ -32,8 +33,17 @@ function normalizeOutput(s: string): string {
 
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session?.user) {
+  if (!session?.user?.id) {
     return Response.json({ error: 'Authentication required' }, { status: 401 });
+  }
+
+  // Rate limit: max 15 submissions per minute per user
+  const rl = rateLimit(`judge:${session.user.id}`, { windowSeconds: 60, maxRequests: 15 });
+  if (!rl.success) {
+    return Response.json(
+      { error: `Submission rate limit exceeded. Please wait ${rl.resetSeconds}s before submitting again.` },
+      { status: 429 }
+    );
   }
 
   let body: unknown;

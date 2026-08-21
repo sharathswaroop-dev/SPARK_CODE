@@ -17,10 +17,8 @@ export interface GroupAuthResult {
 }
 
 /**
- * Ensures that an authenticated user has access to a group room.
- * If the group exists and the user is not yet a member, automatically
- * registers them as a MEMBER so shared links and parallel API calls
- * succeed seamlessly without 403 authorization race conditions.
+ * Verifies that an authenticated user is a verified member or leader of a study group.
+ * Prevents unauthorized access and IDOR enumeration across private study group endpoints.
  */
 export async function ensureGroupMembership(
   groupId: string,
@@ -40,10 +38,10 @@ export async function ensureGroupMembership(
   });
 
   if (!group) {
-    return { allowed: false, error: 'Room not found', status: 404 };
+    return { allowed: false, error: 'Study group not found', status: 404 };
   }
 
-  let membership = await prisma.groupMember.findUnique({
+  const membership = await prisma.groupMember.findUnique({
     where: {
       groupId_userId: {
         groupId,
@@ -53,13 +51,11 @@ export async function ensureGroupMembership(
   });
 
   if (!membership) {
-    membership = await prisma.groupMember.create({
-      data: {
-        groupId,
-        userId,
-        role: 'MEMBER',
-      },
-    });
+    return {
+      allowed: false,
+      error: 'You are not a member of this study group. Join using the invite code or room link.',
+      status: 403,
+    };
   }
 
   return {

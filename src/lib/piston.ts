@@ -2,10 +2,8 @@
  * Code Execution Engine — server-only.
  *
  * Strategy (priority order):
- *  1. If PISTON_URL env var is set → use that Piston instance.
- *  2. Otherwise → spawn a local subprocess using the host's runtimes.
- *
- * Confirmed host runtimes: Python 3.13, Node 24, Java 1.8/15, GCC g++
+ *  1. If PISTON_URL env var is set → use that isolated containerized Piston instance.
+ *  2. Otherwise → spawn a subprocess with sanitized environment and resource watchdogs.
  */
 
 import { spawn } from 'child_process';
@@ -32,7 +30,9 @@ export interface ExecuteResult {
   isTimeLimitExceeded?: boolean;
 }
 
-// ─── Piston remote execution ──────────────────────────────────────────────────
+const MAX_OUTPUT_BYTES = 512 * 1024; // 512KB maximum output to prevent memory exhaustion
+
+// ─── Piston remote execution (Production Sandboxing) ──────────────────────────
 
 const PISTON_RUNTIMES: Record<SupportedLanguage, { language: string; version: string }> = {
   python:     { language: 'python',     version: '3.10.0' },
@@ -74,8 +74,8 @@ async function runViaPiston(url: string, opts: ExecuteOptions): Promise<ExecuteR
     : (run.stderr ?? '');
 
   return {
-    stdout: run.stdout ?? '',
-    stderr,
+    stdout: (run.stdout ?? '').slice(0, MAX_OUTPUT_BYTES),
+    stderr: stderr.slice(0, MAX_OUTPUT_BYTES),
     exitCode: compile?.code ?? run.code ?? 0,
     executionTimeMs: null,
     isCompileError,
@@ -83,7 +83,23 @@ async function runViaPiston(url: string, opts: ExecuteOptions): Promise<ExecuteR
   };
 }
 
-// ─── Local subprocess execution ───────────────────────────────────────────────
+// ─── Local subprocess execution (Hardened for local development) ─────────────
+
+/**
+ * Sanitized minimal environment variables for local subprocess execution.
+ * Explicitly strips out DATABASE_URL, AUTH_SECRET, API keys, and server secrets.
+ */
+function getSanitizedEnv(): NodeJS.ProcessEnv {
+  return {
+    PATH: process.env.PATH || '',
+    SystemRoot: process.env.SystemRoot || '',
+    TEMP: os.tmpdir(),
+    TMP: os.tmpdir(),
+    NODE_ENV: 'production',
+    PYTHONUNBUFFERED: '1',
+    // Do NOT include process.env.AUTH_SECRET, process.env.DATABASE_URL, etc.
+  };
+}
 
 function spawnProcess(
   cmd: string,
@@ -92,7 +108,12 @@ function spawnProcess(
   timeoutMs: number
 ): Promise<{ stdout: string; stderr: string; exitCode: number; isTimeLimitExceeded: boolean }> {
   return new Promise((resolve) => {
-    const proc = spawn(cmd, args, { stdio: ['pipe', 'pipe', 'pipe'] });
+    // Spawn with minimal, sanitized environment
+    const proc = spawn(cmd, args, {
+      env: getSanitizedEnv(),
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
     let stdout = '';
     let stderr = '';
     let settled = false;
@@ -103,18 +124,37 @@ function spawnProcess(
         settled = true;
         isTimeLimitExceeded = true;
         try { proc.kill('SIGKILL'); } catch (_) {}
-        resolve({ stdout, stderr: `Time Limit Exceeded after ${timeoutMs}ms`, exitCode: 124, isTimeLimitExceeded: true });
+        resolve({
+          stdout: stdout.slice(0, MAX_OUTPUT_BYTES),
+          stderr: `Time Limit Exceeded after ${timeoutMs}ms`,
+          exitCode: 124,
+          isTimeLimitExceeded: true,
+        });
       }
     }, timeoutMs);
 
-    proc.stdout.on('data', (d: Buffer) => { stdout += d.toString(); });
-    proc.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });
+    proc.stdout.on('data', (d: Buffer) => {
+      if (stdout.length < MAX_OUTPUT_BYTES) {
+        stdout += d.toString();
+      }
+    });
+
+    proc.stderr.on('data', (d: Buffer) => {
+      if (stderr.length < MAX_OUTPUT_BYTES) {
+        stderr += d.toString();
+      }
+    });
 
     proc.on('close', (code) => {
       if (!settled) {
         settled = true;
         clearTimeout(timer);
-        resolve({ stdout, stderr, exitCode: code ?? 1, isTimeLimitExceeded });
+        resolve({
+          stdout: stdout.slice(0, MAX_OUTPUT_BYTES),
+          stderr: stderr.slice(0, MAX_OUTPUT_BYTES),
+          exitCode: code ?? 1,
+          isTimeLimitExceeded,
+        });
       }
     });
 
@@ -126,12 +166,23 @@ function spawnProcess(
         const msg = isEnoent
           ? `Command not found: '${cmd}'. Ensure compiler/runtime is installed and in PATH.`
           : err.message;
-        resolve({ stdout: '', stderr: msg, exitCode: 1, isTimeLimitExceeded: false });
+        resolve({
+          stdout: '',
+          stderr: msg,
+          exitCode: 1,
+          isTimeLimitExceeded: false,
+        });
       }
     });
 
-    if (stdin) proc.stdin.write(stdin);
-    proc.stdin.end();
+    if (stdin) {
+      try {
+        proc.stdin.write(stdin);
+      } catch (_) {}
+    }
+    try {
+      proc.stdin.end();
+    } catch (_) {}
   });
 }
 
@@ -150,23 +201,15 @@ async function runLocally(opts: ExecuteOptions): Promise<ExecuteResult> {
 
     if (opts.language === 'javascript') {
       const file = path.join(tmpDir, 'main.js');
-      // On Windows, /dev/stdin doesn't exist. We wrap the user code so stdin
-      // is collected via process.stdin and injected as a global 'lines' array
-      // accessible to the user code. We also provide require() normally.
-      // The wrapper reads all stdin, splits by newline, then evals user code.
       const wrapper = `
 process.stdin.resume();
 process.stdin.setEncoding('utf8');
 let _input = '';
-process.stdin.on('data', d => _input += d);
+process.stdin.on('data', d => { if (_input.length < 524288) _input += d; });
 process.stdin.on('end', () => {
   const __lines = _input.split('\\n');
   let __lineIdx = 0;
-  // Provide a readline-compatible helper
   const readline = () => __lines[__lineIdx++] || '';
-  // Override require('fs').readFileSync with stdin-compatible version for common patterns
-  const _origRequire = require;
-  // Run user code
   try {
     (function(lines, readline) {
 ${opts.code}
@@ -185,13 +228,13 @@ ${opts.code}
       fs.writeFileSync(file, opts.code, 'utf8');
 
       // Compile C++
-      const compile = await spawnProcess('g++', ['-std=c++17', '-O2', file, '-o', exe], '', 12_000);
+      const compile = await spawnProcess('g++', ['-std=c++17', '-O2', file, '-o', exe], '', 10_000);
       if (compile.exitCode !== 0) {
         const isNotInstalled = compile.stderr.includes('not found') || compile.stderr.includes("Command not found");
         return {
           stdout: '',
           stderr: isNotInstalled
-            ? 'C++ compiler (g++) is not installed on this server. Please contact the administrator.'
+            ? 'C++ compiler (g++) is not installed on this server.'
             : (compile.stderr || 'Compilation failed'),
           exitCode: compile.exitCode,
           executionTimeMs: Date.now() - start,
@@ -209,13 +252,13 @@ ${opts.code}
       fs.writeFileSync(file, opts.code, 'utf8');
 
       // Compile Java
-      const compile = await spawnProcess('javac', [file], '', 12_000);
+      const compile = await spawnProcess('javac', [file], '', 10_000);
       if (compile.exitCode !== 0) {
         const isNotInstalled = compile.stderr.includes('not found') || compile.stderr.includes("Command not found");
         return {
           stdout: '',
           stderr: isNotInstalled
-            ? 'Java compiler (javac) is not installed on this server. A JDK (not just JRE) is required.'
+            ? 'Java compiler (javac) is not installed on this server.'
             : (compile.stderr || 'Compilation failed'),
           exitCode: compile.exitCode,
           executionTimeMs: Date.now() - start,
@@ -238,7 +281,7 @@ ${opts.code}
 
 /**
  * Execute user code.
- * Uses remote Piston if PISTON_URL is set; otherwise uses local subprocesses.
+ * Uses remote Piston if PISTON_URL is set; otherwise uses hardened local subprocesses.
  */
 export async function pistonExecute(opts: ExecuteOptions): Promise<ExecuteResult> {
   const pistonUrl = process.env.PISTON_URL;

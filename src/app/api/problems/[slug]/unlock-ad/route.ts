@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(
   _request: NextRequest,
@@ -18,6 +19,15 @@ export async function POST(
 
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+
+  // Rate limit: max 5 ad unlocks per 10 minutes per user
+  const rl = rateLimit(`unlock:${session.user.id}`, { windowSeconds: 10 * 60, maxRequests: 5 });
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: `Too many unlock requests. Please wait ${rl.resetSeconds}s before unlocking again.` },
+      { status: 429 }
+    );
   }
 
   const problem = await prisma.problem.findUnique({

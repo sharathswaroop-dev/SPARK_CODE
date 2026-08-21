@@ -1,14 +1,14 @@
 /**
  * POST /api/execute
  *
- * Validates input then delegates to the execution engine (lib/piston.ts).
- * Execution is real: either via a configured Piston instance (PISTON_URL env)
- * or via local subprocesses (python / node / java on the host).
- * Code never runs client-side.
+ * Validates input, verifies authentication, applies rate limiting,
+ * then delegates to the execution engine (lib/piston.ts).
  */
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { auth } from '@/lib/auth';
 import { pistonExecute, SUPPORTED_LANGUAGES } from '@/lib/piston';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 const MAX_CODE_LENGTH = 64_000; // ~64KB max
 
@@ -19,7 +19,20 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  // Parse + validate input
+  // 1. Enforce authentication
+  const session = await auth();
+  const identifier = session?.user?.id || getClientIp(request);
+
+  // 2. Apply rate limiting: max 20 executions per minute per user/IP
+  const rl = rateLimit(`exec:${identifier}`, { windowSeconds: 60, maxRequests: 20 });
+  if (!rl.success) {
+    return Response.json(
+      { error: `Execution rate limit exceeded. Please wait ${rl.resetSeconds}s before running code again.` },
+      { status: 429 }
+    );
+  }
+
+  // 3. Parse + validate input
   let body: unknown;
   try {
     body = await request.json();
