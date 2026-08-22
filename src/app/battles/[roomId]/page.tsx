@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -142,6 +142,10 @@ export default function LiveBattleArenaPage({
   const [verdict, setVerdict] = useState<string | null>(null);
   const [passedCases, setPassedCases] = useState<number | null>(null);
 
+  // Guards to prevent polling ticks from resetting user edits
+  const hasInitializedCodeRef = useRef(false);
+  const hasInitializedInputRef = useRef(false);
+
   // UI state
   const [leftTab, setLeftTab] = useState<'problem' | 'battlelog'>('problem');
   const [bottomTab, setBottomTab] = useState<'testcase' | 'result'>('testcase');
@@ -165,11 +169,13 @@ export default function LiveBattleArenaPage({
       const data = await res.json();
       setRoomData(data.room);
 
-      // Auto-initialize code if empty
-      if (!code && data.room?.problem?.starterCode) {
+      // Auto-initialize code & input ONLY ONCE on initial load
+      if (!hasInitializedCodeRef.current && data.room?.problem?.starterCode) {
+        hasInitializedCodeRef.current = true;
         setCode(data.room.problem.starterCode[language] || DEFAULT_STARTER[language]);
       }
-      if (!customInput && data.room?.problem?.examples?.[0]) {
+      if (!hasInitializedInputRef.current && data.room?.problem?.examples?.[0]) {
+        hasInitializedInputRef.current = true;
         setCustomInput(data.room.problem.examples[0].input);
       }
     } catch (e: any) {
@@ -177,6 +183,12 @@ export default function LiveBattleArenaPage({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResetCode = () => {
+    if (!roomData?.problem) return;
+    const starter = roomData.problem.starterCode?.[language] || DEFAULT_STARTER[language];
+    setCode(starter);
   };
 
   const handleJoin = async (team?: 'TEAM_A' | 'TEAM_B') => {
@@ -646,6 +658,16 @@ export default function LiveBattleArenaPage({
             </div>
 
             <div className="flex items-center gap-2">
+              <button
+                onClick={handleResetCode}
+                disabled={running || submitting}
+                className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-400 hover:text-slate-200 flex items-center gap-1 transition disabled:opacity-50"
+                title="Reset to starter template"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+
               <button
                 onClick={handleRunCustom}
                 disabled={running || submitting}
