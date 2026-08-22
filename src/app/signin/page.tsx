@@ -1,18 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Code2, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function SignInPage() {
+function SignInContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<'google' | 'github' | null>(null);
+
+  const callbackUrl = searchParams.get('callbackUrl') || '/playground';
+  const urlError = searchParams.get('error');
+
+  useEffect(() => {
+    if (urlError) {
+      if (urlError === 'OAuthAccountNotLinked') {
+        setError('An account with this email already exists using a different sign-in method.');
+      } else if (urlError === 'OAuthCallbackError' || urlError === 'CallbackRouteError') {
+        setError('Authentication callback failed. Please verify your environment credentials or try again.');
+      } else if (urlError === 'Configuration') {
+        setError('Server configuration issue detected. Please check AUTH_SECRET and provider keys on Render.');
+      } else if (urlError === 'AccessDenied') {
+        setError('Access denied. You do not have permission to sign in.');
+      } else {
+        setError(`Authentication error: ${urlError}`);
+      }
+    }
+  }, [urlError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +49,7 @@ export default function SignInPage() {
       if (res?.error) {
         setError('Invalid email or password');
       } else {
-        router.push('/playground');
+        router.push(callbackUrl);
         router.refresh();
       }
     } catch (err) {
@@ -43,7 +63,7 @@ export default function SignInPage() {
     setError('');
     setOauthLoading(provider);
     try {
-      await signIn(provider, { callbackUrl: '/playground' });
+      await signIn(provider, { callbackUrl });
     } catch (err) {
       setError(`Failed to sign in with ${provider}. Please try again.`);
       setOauthLoading(null);
@@ -179,5 +199,19 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[85vh] flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+        </div>
+      }
+    >
+      <SignInContent />
+    </Suspense>
   );
 }

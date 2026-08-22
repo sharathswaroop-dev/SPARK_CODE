@@ -14,23 +14,33 @@ const credentialsSchema = z.object({
 
 const providers: any[] = [];
 
-// Add Google provider only if credentials are provided in environment
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+// Helper to sanitize environment variables (removes accidental quotes and trailing whitespace)
+function cleanEnv(val: string | undefined): string {
+  if (!val) return '';
+  return val.trim().replace(/^["']|["']$/g, '');
+}
+
+const googleClientId = cleanEnv(process.env.GOOGLE_CLIENT_ID);
+const googleClientSecret = cleanEnv(process.env.GOOGLE_CLIENT_SECRET);
+
+if (googleClientId && googleClientSecret) {
   providers.push(
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
       allowDangerousEmailAccountLinking: true,
     })
   );
 }
 
-// Add GitHub provider only if credentials are provided in environment
-if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+const githubClientId = cleanEnv(process.env.GITHUB_CLIENT_ID);
+const githubClientSecret = cleanEnv(process.env.GITHUB_CLIENT_SECRET);
+
+if (githubClientId && githubClientSecret) {
   providers.push(
     GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      clientId: githubClientId,
+      clientSecret: githubClientSecret,
       allowDangerousEmailAccountLinking: true,
     })
   );
@@ -90,16 +100,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
   trustHost: true,
+  debug: true,
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || 'sparkcode-secure-production-secret-key-32chars',
   providers,
   callbacks: {
-    async jwt({ token, user }) {
-      if (user?.id) {
-        token.id = user.id;
-        // Fetch current tier from DB on sign-in
+    async jwt({ token, user, account, profile }) {
+      if (user) {
+        token.id = user.id || token.sub;
+        token.email = user.email ?? token.email;
+        token.name = user.name ?? token.name;
+        token.picture = user.image ?? token.picture;
         try {
-          const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
-          token.tier = dbUser?.tier ?? 'free';
+          if (user.email) {
+            const dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+            if (dbUser) {
+              token.id = dbUser.id;
+              token.tier = dbUser.tier ?? 'free';
+            }
+          }
         } catch (_) {
           token.tier = 'free';
         }
@@ -107,8 +125,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
+      if (session.user) {
+        session.user.id = (token.id as string) || (token.sub as string) || '';
         session.user.tier = (token.tier as string) ?? 'free';
       }
       return session;

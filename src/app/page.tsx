@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { Code2, Zap, Users, ShieldCheck, ArrowRight, CheckCircle2, Cpu, Sparkles, BookOpen, Terminal } from 'lucide-react';
+import { GoogleAd } from '@/components/ads/GoogleAd';
 
 export default function LandingPage() {
   const { data: session } = useSession();
@@ -70,6 +71,11 @@ def solve_two_sum(nums, target):
 # Live driver: User 'sharath' is presenting with WebRTC Voice & Video`}
           </pre>
         </div>
+
+        {/* ── Ad Placement 1: Below Hero / Code Preview ── */}
+        <div className="max-w-4xl mx-auto pt-2">
+          <GoogleAd slot="1000000001" format="horizontal" />
+        </div>
       </section>
 
       {/* ── FEATURE GRID ──────────────────────────────────────── */}
@@ -117,6 +123,11 @@ def solve_two_sum(nums, target):
           </div>
         </div>
       </section>
+
+      {/* ── Ad Placement 2: Between Feature Grid and Pricing ── */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <GoogleAd slot="1000000002" format="auto" />
+      </div>
 
       {/* ── PRICING MATRIX ────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-3 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
@@ -184,6 +195,11 @@ def solve_two_sum(nums, target):
           </div>
         </div>
       </section>
+
+      {/* ── Ad Placement 3: Bottom / Above Footer ── */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <GoogleAd slot="1000000003" format="auto" />
+      </div>
     </div>
   );
 }
