@@ -680,6 +680,7 @@ export default function LiveBattleArenaPage({
                 scrollBeyondLastLine: false,
                 lineNumbers: 'on',
                 tabSize: 2,
+                automaticLayout: true,
               }}
             />
           </div>

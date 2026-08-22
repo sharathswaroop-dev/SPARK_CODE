@@ -238,13 +238,15 @@ export default function PlaygroundPage() {
                 fontFamily: 'JetBrains Mono, Fira Code, Menlo, monospace',
                 minimap: { enabled: false },
                 lineHeight: 22,
-                padding: { top: 14, bottom: 14 },
+                padding: { top: 12, bottom: 12 },
                 scrollBeyondLastLine: false,
                 renderLineHighlight: 'gutter',
                 bracketPairColorization: { enabled: true },
                 smoothScrolling: true,
                 cursorSmoothCaretAnimation: 'on',
                 wordWrap: 'on',
+                lineNumbers: 'on',
+                automaticLayout: true,
               }}
             />
           </div>
