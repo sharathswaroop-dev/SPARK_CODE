@@ -9,12 +9,14 @@ import {
   MoreVertical,
   Search,
   Video,
+  Phone,
   Check,
   CheckCheck,
   FileCode,
   FileText,
   Lock,
   ChevronDown,
+  ChevronLeft,
   X,
   Plus,
   Users,
@@ -29,6 +31,11 @@ import {
   Eye,
   MessageSquare,
   Loader2,
+  Camera,
+  Archive,
+  Pin,
+  Circle,
+  Copy,
 } from 'lucide-react';
 
 interface GroupMessageItem {
@@ -63,9 +70,10 @@ interface WhatsAppGroupChatProps {
   sendingMsg: boolean;
   onJoinLiveCall: () => void;
   isLiveActive?: boolean;
+  onBackToList?: () => void;
 }
 
-const SAMPLE_EMOJIS = ['👍', '❤️', '😂', '🔥', '🎉', '🚀', '💯', '✨', '👏', '🙌', '💡', '✅'];
+const SAMPLE_EMOJIS = ['👍', '❤️', '😂', '🔥', '🎉', '🚀', '💯', '✨', '👏', '🙌', '💡', '✅', '🙏', '👀', '😎'];
 
 // Author colors for WhatsApp group bubbles
 const AUTHOR_COLORS = [
@@ -76,6 +84,7 @@ const AUTHOR_COLORS = [
   'text-pink-400',
   'text-teal-400',
   'text-indigo-400',
+  'text-orange-400',
 ];
 
 function getAuthorColor(id: string): string {
@@ -97,11 +106,16 @@ export default function WhatsAppGroupChat({
   sendingMsg,
   onJoinLiveCall,
   isLiveActive = false,
+  onBackToList,
 }: WhatsAppGroupChatProps) {
   const [inputText, setInputText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeChannel, setActiveChannel] = useState<'main' | 'live' | 'solutions'>('main');
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread' | 'groups'>('all');
+  
+  // Mobile view state: 'list' | 'chat'
+  const [mobileScreen, setMobileScreen] = useState<'list' | 'chat'>('chat');
+
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [show3DotMenu, setShow3DotMenu] = useState(false);
@@ -109,21 +123,20 @@ export default function WhatsAppGroupChat({
   const [showCodeAttachModal, setShowCodeAttachModal] = useState(false);
   const [attachCodeLang, setAttachCodeLang] = useState('python');
   const [attachCodeContent, setAttachCodeContent] = useState('');
+  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Smart auto-scroll: only snap to bottom when user is already near the bottom.
-  // This lets users freely scroll up to read history without being interrupted.
+  // Auto-scroll when messages arrive
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    // Only auto-scroll if within 80px of the bottom (i.e., user hasn't scrolled up)
-    if (distanceFromBottom <= 80) {
+    if (distanceFromBottom <= 120) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages]);
+  }, [messages, mobileScreen]);
 
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -141,6 +154,14 @@ export default function WhatsAppGroupChat({
     await onSendMessage(formatted);
   };
 
+  const handleCopyCode = (code: string, id: string) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code);
+      setCopiedMsgId(id);
+      setTimeout(() => setCopiedMsgId(null), 2000);
+    }
+  };
+
   // Filter messages by search query if any
   const filteredMessages = messages.filter((m) =>
     m.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -154,50 +175,58 @@ export default function WhatsAppGroupChat({
   const lastMessage = messages[messages.length - 1];
 
   return (
-    <div className="w-full h-full bg-[#0c1317] border border-slate-800 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row select-none font-sans text-slate-100">
-      {/* ── LEFT PANEL: CHATS LIST & SEARCH (WhatsApp Web Style) ── */}
-      <div className="w-full md:w-80 lg:w-96 bg-[#111b21] border-b md:border-b-0 md:border-r border-slate-800 flex flex-col shrink-0">
-        {/* Left Header */}
-        <div className="h-16 px-4 bg-[#202c33] border-b border-slate-800 flex items-center justify-between">
+    <div className="w-full h-full bg-[#0c1317] border border-slate-800 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row select-none font-sans text-slate-100 relative">
+      {/* ══════════════════════════════════════════════════════════════════════
+          LEFT PANEL: CHATS LIST & WHATSAPP TABS (Visible on Desktop OR Mobile 'list')
+         ══════════════════════════════════════════════════════════════════════ */}
+      <div
+        className={`w-full md:w-80 lg:w-96 bg-[#111b21] border-b md:border-b-0 md:border-r border-slate-800 flex flex-col shrink-0 ${
+          mobileScreen === 'chat' ? 'hidden md:flex' : 'flex'
+        }`}
+      >
+        {/* Left Header - WhatsApp Android Style */}
+        <div className="h-14 sm:h-16 px-4 bg-[#202c33] border-b border-slate-800/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center font-bold text-sm text-white shadow">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center font-bold text-sm text-white shadow">
               {groupName.slice(0, 2).toUpperCase()}
             </div>
-            <div className="font-bold text-sm text-slate-100">Chats</div>
+            <div>
+              <div className="font-extrabold text-sm sm:text-base text-slate-100 tracking-tight">WhatsApp</div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 text-slate-400">
+          <div className="flex items-center gap-1 sm:gap-2 text-slate-300">
             <button
               type="button"
               onClick={onJoinLiveCall}
-              className={`p-2 rounded-full hover:bg-slate-700/60 hover:text-white transition-colors ${
-                isLiveActive ? 'text-emerald-400 animate-pulse' : ''
+              className={`p-2 rounded-full hover:bg-slate-700/60 transition-colors ${
+                isLiveActive ? 'text-emerald-400 animate-pulse' : 'text-slate-300'
               }`}
-              title="Join Live Code Casting"
+              title="Join Live Code Stage"
             >
-              <Video className="w-5 h-5" />
+              <Video className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
             <button
               type="button"
               onClick={() => setShowGroupInfoModal(true)}
-              className="p-2 rounded-full hover:bg-slate-700/60 hover:text-white transition-colors"
+              className="p-2 rounded-full hover:bg-slate-700/60 transition-colors"
               title="Group Details"
             >
-              <MoreVertical className="w-5 h-5" />
+              <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="p-2.5 bg-[#111b21] border-b border-slate-800/80 space-y-2">
-          <div className="flex items-center bg-[#202c33] rounded-xl px-3 py-1.5 text-xs text-slate-300">
+        {/* Search Bar - "Ask Meta AI or Search" */}
+        <div className="p-2.5 bg-[#111b21] border-b border-slate-800/80 space-y-2 shrink-0">
+          <div className="flex items-center bg-[#202c33] rounded-full px-3.5 py-1.5 text-xs text-slate-300">
             <Search className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search or start a new chat"
-              className="w-full bg-transparent outline-none placeholder-slate-500 text-xs"
+              placeholder="Ask Meta AI or Search"
+              className="w-full bg-transparent outline-none placeholder-slate-400 text-xs font-normal text-slate-200"
             />
             {searchQuery && (
               <button type="button" onClick={() => setSearchQuery('')} className="p-0.5 text-slate-400">
@@ -206,13 +235,15 @@ export default function WhatsAppGroupChat({
             )}
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 overflow-x-auto py-0.5">
+          {/* Filter Pills: [All], [Unread], [Favourites], [Groups], [+] */}
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 overflow-x-auto py-0.5 no-scrollbar">
             <button
               type="button"
               onClick={() => setActiveFilter('all')}
-              className={`px-3 py-1 rounded-full transition-colors ${
-                activeFilter === 'all' ? 'bg-[#00a884]/20 text-[#00a884] font-bold' : 'hover:bg-[#202c33]'
+              className={`px-3 py-1 rounded-full transition-colors shrink-0 ${
+                activeFilter === 'all'
+                  ? 'bg-[#00a884]/20 text-[#00a884] font-bold border border-[#00a884]/40'
+                  : 'bg-[#202c33] hover:bg-[#2a3942] text-slate-300'
               }`}
             >
               All
@@ -220,17 +251,24 @@ export default function WhatsAppGroupChat({
             <button
               type="button"
               onClick={() => setActiveFilter('unread')}
-              className={`px-3 py-1 rounded-full transition-colors ${
-                activeFilter === 'unread' ? 'bg-[#00a884]/20 text-[#00a884] font-bold' : 'hover:bg-[#202c33]'
+              className={`px-3 py-1 rounded-full transition-colors shrink-0 flex items-center gap-1 ${
+                activeFilter === 'unread'
+                  ? 'bg-[#00a884]/20 text-[#00a884] font-bold border border-[#00a884]/40'
+                  : 'bg-[#202c33] hover:bg-[#2a3942] text-slate-300'
               }`}
             >
-              Unread
+              <span>Unread</span>
+              <span className="w-4 h-4 rounded-full bg-emerald-500 text-black text-[9px] font-extrabold flex items-center justify-center">
+                3
+              </span>
             </button>
             <button
               type="button"
               onClick={() => setActiveFilter('groups')}
-              className={`px-3 py-1 rounded-full transition-colors ${
-                activeFilter === 'groups' ? 'bg-[#00a884]/20 text-[#00a884] font-bold' : 'hover:bg-[#202c33]'
+              className={`px-3 py-1 rounded-full transition-colors shrink-0 ${
+                activeFilter === 'groups'
+                  ? 'bg-[#00a884]/20 text-[#00a884] font-bold border border-[#00a884]/40'
+                  : 'bg-[#202c33] hover:bg-[#2a3942] text-slate-300'
               }`}
             >
               Groups
@@ -239,10 +277,13 @@ export default function WhatsAppGroupChat({
         </div>
 
         {/* Channels / Group Items List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-slate-800/40">
-          {/* Primary Group Channel */}
+        <div className="flex-1 overflow-y-auto divide-y divide-slate-800/30">
+          {/* Primary Group Channel Item */}
           <div
-            onClick={() => setActiveChannel('main')}
+            onClick={() => {
+              setActiveChannel('main');
+              setMobileScreen('chat');
+            }}
             className={`p-3.5 flex items-start gap-3 cursor-pointer transition-colors ${
               activeChannel === 'main' ? 'bg-[#2a3942]' : 'hover:bg-[#202c33]/60'
             }`}
@@ -257,12 +298,12 @@ export default function WhatsAppGroupChat({
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-1 mb-1">
+              <div className="flex items-center justify-between gap-1 mb-0.5">
                 <h4 className="text-xs sm:text-sm font-bold text-slate-100 truncate">{groupName}</h4>
-                <span className="text-[10px] text-slate-400 shrink-0">
+                <span className="text-[10px] text-emerald-400 font-bold shrink-0">
                   {lastMessage
                     ? new Date(lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    : 'Today'}
+                    : '12:47 am'}
                 </span>
               </div>
 
@@ -270,23 +311,29 @@ export default function WhatsAppGroupChat({
                 <p className="truncate text-[11px] pr-2">
                   {lastMessage ? (
                     <>
-                      <span className="text-slate-300 font-semibold">{lastMessage.user.name || 'Member'}: </span>
+                      <span className="text-slate-300 font-medium">~ {lastMessage.user.name || 'Member'}: </span>
                       {lastMessage.content}
                     </>
                   ) : (
-                    'No messages yet'
+                    '~ simraaiman: Pdf version'
                   )}
                 </p>
-                {isLiveActive && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 text-[9px] font-bold shrink-0">
-                    LIVE
-                  </span>
-                )}
+                <div className="flex items-center gap-1 shrink-0">
+                  {isLiveActive ? (
+                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 text-[9px] font-bold">
+                      LIVE
+                    </span>
+                  ) : (
+                    <span className="w-4 h-4 rounded-full bg-[#25d366] text-black font-extrabold text-[9px] flex items-center justify-center shadow">
+                      2
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Live Call / Code Casting Channel */}
+          {/* Live Code Casting Stage Channel */}
           <div
             onClick={() => {
               setActiveChannel('live');
@@ -301,47 +348,77 @@ export default function WhatsAppGroupChat({
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-1 mb-1">
-                <h4 className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+              <div className="flex items-center justify-between gap-1 mb-0.5">
+                <h4 className="text-xs font-bold text-slate-100 flex items-center gap-1.5 truncate">
                   Live Code Casting Stage
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 </h4>
-                <span className="text-[10px] text-emerald-400 font-bold">Join</span>
+                <span className="text-[10px] text-emerald-400 font-bold shrink-0">Join Stage</span>
               </div>
               <p className="text-[11px] text-slate-400 truncate">
-                Real-time WebRTC voice, video &amp; Monaco editor
+                WebRTC real-time voice, webcam &amp; Monaco editor
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── RIGHT MAIN PANEL: WHATSAPP CHAT STREAM & INPUT ── */}
-      <div className="flex-1 flex flex-col bg-[#0b141a] min-w-0 min-h-0 relative">
-        {/* Main Chat Header (WhatsApp Style) */}
-        <div className="h-16 px-4 bg-[#202c33] border-b border-slate-800 flex items-center justify-between z-10 shrink-0">
-          <div className="flex items-center gap-3 min-w-0 cursor-pointer" onClick={() => setShowGroupInfoModal(true)}>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center font-bold text-sm text-white shadow shrink-0">
+      {/* ══════════════════════════════════════════════════════════════════════
+          RIGHT MAIN PANEL: WHATSAPP CHAT STREAM & INPUT
+         ══════════════════════════════════════════════════════════════════════ */}
+      <div
+        className={`flex-1 flex flex-col bg-[#0b141a] min-w-0 min-h-0 relative ${
+          mobileScreen === 'list' ? 'hidden md:flex' : 'flex'
+        }`}
+      >
+        {/* Main WhatsApp Header */}
+        <div className="h-14 sm:h-16 px-2.5 sm:px-4 bg-[#202c33] border-b border-slate-800/80 flex items-center justify-between z-10 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 cursor-pointer" onClick={() => setShowGroupInfoModal(true)}>
+            {/* Mobile Back Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onBackToList) onBackToList();
+                else setMobileScreen('list');
+              }}
+              className="p-1 sm:hidden rounded-full hover:bg-slate-700 text-slate-300 shrink-0"
+              title="Back to chats"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center font-bold text-xs sm:text-sm text-white shadow shrink-0">
               {groupName.slice(0, 2).toUpperCase()}
             </div>
+
             <div className="min-w-0">
-              <h3 className="text-sm font-bold text-slate-100 truncate">{groupName}</h3>
-              <p className="text-[11px] text-slate-400 truncate max-w-sm sm:max-w-md">
-                {membersNamesStr}
+              <h3 className="text-xs sm:text-sm font-bold text-slate-100 truncate">{groupName}</h3>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 truncate max-w-[140px] xs:max-w-[200px] sm:max-w-md">
+                {membersNamesStr || 'Click for group details'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-slate-300">
+          <div className="flex items-center gap-1 sm:gap-2 text-slate-300">
             {/* Live Video Call Quick Join Button */}
             <button
               type="button"
               onClick={onJoinLiveCall}
-              className="px-3 py-1.5 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-violet-900/30 transition-all transform active:scale-95"
+              className="p-2 sm:px-3 sm:py-1.5 rounded-full bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-violet-900/30 transition-all transform active:scale-95 shrink-0"
               title="Join Voice & Video Stage"
             >
               <Video className="w-4 h-4" />
-              <span className="hidden sm:inline">Join Call</span>
+              <span className="hidden md:inline">Join Call</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onJoinLiveCall}
+              className="p-2 rounded-full hover:bg-slate-700 text-slate-300 hover:text-white transition-colors hidden xs:inline-flex"
+              title="Voice Call"
+            >
+              <Phone className="w-4 h-4" />
             </button>
 
             <button
@@ -392,19 +469,22 @@ export default function WhatsAppGroupChat({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setShow3DotMenu(false)}
+                      onClick={() => {
+                        setShow3DotMenu(false);
+                        setShowCodeAttachModal(true);
+                      }}
                       className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#182229] flex items-center gap-2"
                     >
-                      <BellOff className="w-4 h-4 text-slate-400" />
-                      <span>Mute notifications</span>
+                      <FileCode className="w-4 h-4 text-emerald-400" />
+                      <span>Share Code Snippet</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setShow3DotMenu(false)}
                       className="w-full text-left px-3 py-2 rounded-xl hover:bg-[#182229] flex items-center gap-2"
                     >
-                      <Clock className="w-4 h-4 text-slate-400" />
-                      <span>Disappearing messages</span>
+                      <BellOff className="w-4 h-4 text-slate-400" />
+                      <span>Mute notifications</span>
                     </button>
                   </div>
                 </>
@@ -416,16 +496,16 @@ export default function WhatsAppGroupChat({
         {/* ── WHATSAPP WALLPAPER & CHAT STREAM ── */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 relative"
+          className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-2.5 relative"
           style={{
             backgroundColor: '#0b141a',
-            backgroundImage: `radial-gradient(#1f2c34 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(#1a262f 1.5px, transparent 1.5px)`,
             backgroundSize: '24px 24px',
           }}
         >
           {/* WhatsApp End-to-End Encryption Notice Pill */}
           <div className="flex justify-center my-2">
-            <div className="bg-[#182229] text-[#ffd279] text-[11px] px-4 py-1.5 rounded-xl border border-slate-800 shadow flex items-center gap-1.5 max-w-md text-center leading-relaxed">
+            <div className="bg-[#182229] text-[#ffd279] text-[10px] sm:text-[11px] px-3.5 py-1.5 rounded-xl border border-slate-800/80 shadow flex items-center gap-1.5 max-w-sm text-center leading-relaxed">
               <Lock className="w-3.5 h-3.5 shrink-0" />
               <span>Messages are end-to-end encrypted with SparkCode group security.</span>
             </div>
@@ -433,15 +513,17 @@ export default function WhatsAppGroupChat({
 
           {/* Date Separator Pill */}
           <div className="flex justify-center my-2">
-            <span className="bg-[#182229] text-slate-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-slate-800 shadow-sm">
+            <span className="bg-[#182229] text-slate-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full border border-slate-800 shadow-sm">
               Today
             </span>
           </div>
 
           {/* Messages Stream */}
           {filteredMessages.length === 0 ? (
-            <div className="text-center py-20 text-slate-500 text-xs italic">
-              No messages yet. Send a message or code snippet to start chatting!
+            <div className="text-center py-16 sm:py-24 text-slate-400 text-xs space-y-2">
+              <MessageSquare className="w-8 h-8 text-slate-600 mx-auto" />
+              <p className="font-semibold text-slate-300">No messages yet</p>
+              <p className="text-[11px] text-slate-500">Send a message or share code snippet to get started!</p>
             </div>
           ) : (
             filteredMessages.map((m) => {
@@ -455,7 +537,7 @@ export default function WhatsAppGroupChat({
                   className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} group mb-1`}
                 >
                   <div
-                    className={`relative max-w-lg rounded-2xl px-3.5 py-2 shadow-md text-xs leading-relaxed ${
+                    className={`relative max-w-[85%] sm:max-w-lg rounded-2xl px-3 py-1.5 sm:px-3.5 sm:py-2 shadow-md text-xs leading-relaxed ${
                       isMe
                         ? 'bg-[#005c4b] text-[#e9edef] rounded-tr-none'
                         : 'bg-[#202c33] text-[#e9edef] rounded-tl-none'
@@ -463,20 +545,34 @@ export default function WhatsAppGroupChat({
                   >
                     {/* Author Name for incoming group messages */}
                     {!isMe && (
-                      <div className={`text-[11px] font-bold mb-1 ${getAuthorColor(m.user.id)}`}>
+                      <div className={`text-[10px] sm:text-[11px] font-bold mb-0.5 ${getAuthorColor(m.user.id)}`}>
                         ~ {m.user.name || 'Member'}
                       </div>
                     )}
 
                     {/* Message Body: Code Block Attachment OR Regular text */}
                     {isCodeBlock ? (
-                      <div className="space-y-2 my-1">
-                        <div className="bg-[#111b21] rounded-xl p-3 border border-slate-700/80 font-mono text-[11px] text-emerald-300 overflow-x-auto">
-                          <div className="flex items-center justify-between text-[9px] text-slate-400 font-sans pb-1 mb-1.5 border-b border-slate-800">
-                            <span className="flex items-center gap-1 font-bold">
+                      <div className="space-y-1.5 my-1">
+                        <div className="bg-[#111b21] rounded-xl p-2.5 sm:p-3 border border-slate-700/80 font-mono text-[11px] text-emerald-300 overflow-x-auto max-w-full">
+                          <div className="flex items-center justify-between text-[9px] text-slate-400 font-sans pb-1 mb-1 border-b border-slate-800">
+                            <span className="flex items-center gap-1 font-bold text-violet-300">
                               <FileCode className="w-3 h-3 text-violet-400" /> Code Snippet
                             </span>
-                            <span>Shared snippet</span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyCode(cleanCode, m.id)}
+                              className="text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
+                            >
+                              {copiedMsgId === m.id ? (
+                                <>
+                                  <Check className="w-2.5 h-2.5 text-emerald-400" /> Copied
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-2.5 h-2.5" /> Copy
+                                </>
+                              )}
+                            </button>
                           </div>
                           <pre className="whitespace-pre-wrap">{cleanCode}</pre>
                         </div>
@@ -486,9 +582,9 @@ export default function WhatsAppGroupChat({
                     )}
 
                     {/* Message Timestamp & WhatsApp Double Checkmarks */}
-                    <div className="flex items-center justify-end gap-1 text-[9px] text-slate-400/90 mt-1 select-none float-right ml-3">
+                    <div className="flex items-center justify-end gap-1 text-[9px] text-slate-400/90 mt-0.5 select-none float-right ml-2.5">
                       <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      {isMe && <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" />}
+                      {isMe && <CheckCheck className="w-3 h-3 text-[#53bdeb]" />}
                     </div>
                   </div>
                 </div>
@@ -500,7 +596,7 @@ export default function WhatsAppGroupChat({
 
         {/* ── EMOJI PICKER POPUP ── */}
         {showEmojiPicker && (
-          <div className="p-3 bg-[#202c33] border-t border-slate-800 flex items-center gap-2 overflow-x-auto text-xl">
+          <div className="p-2.5 bg-[#202c33] border-t border-slate-800 flex items-center gap-2 overflow-x-auto text-xl no-scrollbar">
             {SAMPLE_EMOJIS.map((emoji) => (
               <button
                 key={emoji}
@@ -509,7 +605,7 @@ export default function WhatsAppGroupChat({
                   setInputText((prev) => prev + emoji);
                   setShowEmojiPicker(false);
                 }}
-                className="p-1.5 hover:bg-slate-700 rounded-lg hover:scale-125 transition-all"
+                className="p-1 hover:bg-slate-700 rounded-lg hover:scale-125 transition-all shrink-0"
               >
                 {emoji}
               </button>
@@ -521,7 +617,7 @@ export default function WhatsAppGroupChat({
         {showAttachMenu && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setShowAttachMenu(false)} />
-            <div className="absolute bottom-20 left-4 bg-[#233138] border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-1 animate-in zoom-in-95 duration-100">
+            <div className="absolute bottom-16 left-3 sm:left-4 bg-[#233138] border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-1 animate-in zoom-in-95 duration-100">
               <button
                 type="button"
                 onClick={() => {
@@ -548,21 +644,11 @@ export default function WhatsAppGroupChat({
           </>
         )}
 
-        {/* ── BOTTOM INPUT BAR (Exact WhatsApp Web Pill Design) ── */}
+        {/* ── BOTTOM INPUT BAR (WhatsApp Mobile Style) ── */}
         <form
           onSubmit={handleSend}
-          className="h-16 px-4 bg-[#202c33] border-t border-slate-800 flex items-center gap-2.5 shrink-0"
+          className="h-14 sm:h-16 px-2.5 sm:px-4 bg-[#202c33] border-t border-slate-800/80 flex items-center gap-2 shrink-0"
         >
-          {/* Plus / Attachment Button */}
-          <button
-            type="button"
-            onClick={() => setShowAttachMenu((prev) => !prev)}
-            className="p-2 rounded-full hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-            title="Attach code snippet or file"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
-
           {/* Emoji Button */}
           <button
             type="button"
@@ -573,13 +659,23 @@ export default function WhatsAppGroupChat({
             <Smile className="w-5 h-5" />
           </button>
 
+          {/* Plus / Attachment Button */}
+          <button
+            type="button"
+            onClick={() => setShowAttachMenu((prev) => !prev)}
+            className="p-2 rounded-full hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+            title="Attach code snippet or file"
+          >
+            <Paperclip className="w-5 h-5" />
+          </button>
+
           {/* Message Input Pill */}
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Type a message"
-            className="flex-1 bg-[#2a3942] border-none rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-400 outline-none"
+            className="flex-1 bg-[#2a3942] border-none rounded-full px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-400 outline-none"
           />
 
           {/* Send / Mic Action Button */}
@@ -587,7 +683,7 @@ export default function WhatsAppGroupChat({
             <button
               type="submit"
               disabled={sendingMsg}
-              className="p-2.5 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white shadow transition-all transform active:scale-95 shrink-0"
+              className="p-2.5 sm:p-3 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white shadow-md transition-all transform active:scale-95 shrink-0"
               title="Send message"
             >
               {sendingMsg ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -595,8 +691,8 @@ export default function WhatsAppGroupChat({
           ) : (
             <button
               type="button"
-              onClick={() => onSendMessage('🎙 Voice note / ping')}
-              className="p-2.5 rounded-full hover:bg-slate-700 text-slate-300 hover:text-white transition-colors shrink-0"
+              onClick={() => onSendMessage('🎙 Voice ping')}
+              className="p-2.5 sm:p-3 rounded-full bg-[#00a884] hover:bg-[#008f6f] text-white shadow-md transition-all transform active:scale-95 shrink-0"
               title="Send quick voice ping"
             >
               <Mic className="w-4 h-4" />
@@ -607,10 +703,10 @@ export default function WhatsAppGroupChat({
 
       {/* ── MODAL: GROUP INFO (WhatsApp Style) ── */}
       {showGroupInfoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in select-none">
-          <div className="bg-[#111b21] border border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-5 animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in select-none">
+          <div className="bg-[#111b21] border border-slate-800 rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white">Group Info</h3>
+              <h3 className="text-sm sm:text-base font-bold text-white">Group Info</h3>
               <button
                 type="button"
                 onClick={() => setShowGroupInfoModal(false)}
@@ -621,7 +717,7 @@ export default function WhatsAppGroupChat({
             </div>
 
             <div className="flex flex-col items-center text-center space-y-2">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center font-bold text-2xl text-white shadow-xl">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center font-bold text-xl sm:text-2xl text-white shadow-xl">
                 {groupName.slice(0, 2).toUpperCase()}
               </div>
               <h2 className="text-base font-extrabold text-white">{groupName}</h2>
@@ -629,7 +725,7 @@ export default function WhatsAppGroupChat({
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-2 pt-2">
+            <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => {
@@ -653,7 +749,7 @@ export default function WhatsAppGroupChat({
                 className="p-2.5 rounded-2xl bg-[#202c33] hover:bg-[#2a3942] text-slate-200 font-bold text-xs flex items-center justify-center gap-2"
               >
                 <Users className="w-4 h-4 text-emerald-400" />
-                <span>Copy Invite Link</span>
+                <span>Copy Invite</span>
               </button>
             </div>
 
@@ -694,8 +790,8 @@ export default function WhatsAppGroupChat({
 
       {/* ── MODAL: SHARE CODE SNIPPET ATTACHMENT ── */}
       {showCodeAttachModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in select-none">
-          <div className="bg-[#111b21] border border-slate-800 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in select-none">
+          <div className="bg-[#111b21] border border-slate-800 rounded-3xl w-full max-w-lg p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <FileCode className="w-5 h-5 text-violet-400" />
@@ -728,10 +824,10 @@ export default function WhatsAppGroupChat({
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-slate-300">Paste Code</label>
               <textarea
-                rows={7}
+                rows={6}
                 value={attachCodeContent}
                 onChange={(e) => setAttachCodeContent(e.target.value)}
-                placeholder="Paste code or algorithm snippet here..."
+                placeholder="Paste algorithm or code snippet here..."
                 className="w-full bg-[#202c33] border border-slate-700 rounded-xl p-3 font-mono text-xs text-emerald-300 placeholder-slate-500 outline-none resize-none"
               />
             </div>

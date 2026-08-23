@@ -1114,6 +1114,7 @@ export default function GroupWorkspacePage({ params }: { params: Promise<{ id: s
             sendingMsg={sendingMsg}
             onJoinLiveCall={() => setActiveTab('live')}
             isLiveActive={Boolean(roomState?.presenterId || (roomState?.participants?.length ?? 0) > 0)}
+            onBackToList={() => setActiveTab('tasks')}
           />
         </div>
       )}

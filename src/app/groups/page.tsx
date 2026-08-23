@@ -27,6 +27,14 @@ import {
   CheckCircle,
   Flame,
   Code2,
+  Camera,
+  Search,
+  Archive,
+  Pin,
+  MoreVertical,
+  Phone,
+  CircleDot,
+  IndianRupee,
 } from 'lucide-react';
 
 interface GroupSummary {
@@ -51,6 +59,11 @@ export default function GroupsCollaborationPage() {
 
   // Active left sidebar navigation: 1. Group Assignments | 2. Live Code Casting | 3. Group Chat
   const [activeSection, setActiveSection] = useState<SidebarSection>('live-casting');
+
+  // WhatsApp Mobile Chat state
+  const [chatSearchQuery, setChatSearchQuery] = useState('');
+  const [chatFilter, setChatFilter] = useState<'all' | 'unread' | 'favourites' | 'groups'>('all');
+  const [chatBottomTab, setChatBottomTab] = useState<'chats' | 'updates' | 'communities' | 'calls'>('chats');
 
   // 1. Join Room input state
   const [roomCodeOrLink, setRoomCodeOrLink] = useState('');
@@ -787,64 +800,345 @@ export default function GroupsCollaborationPage() {
           )}
 
           {/* ════════════════════════════════════════════════════════════════════════
-              SECTION 3: GROUP CHAT
+              SECTION 3: GROUP CHAT (WHATSAPP MOBILE UI CLONE)
              ════════════════════════════════════════════════════════════════════════ */}
           {activeSection === 'chat' && (
-            <div className="space-y-6 animate-in fade-in duration-150">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
-                <div>
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-emerald-400" />
-                    <span>Group Chat Channels</span>
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    Real-time discussions, shared code snippets, and group channels.
-                  </p>
+            <div className="bg-[#0b141b] rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl flex flex-col font-sans animate-in fade-in duration-150 max-w-2xl mx-auto min-h-[640px]">
+              {/* ── TOP WHATSAPP HEADER ── */}
+              <div className="px-4 py-3 bg-[#111b21] flex items-center justify-between border-b border-slate-800/60 shrink-0">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold text-slate-100 tracking-tight">WhatsApp</h1>
+                </div>
+
+                <div className="flex items-center gap-4 text-slate-300">
+                  <button
+                    type="button"
+                    onClick={() => router.push('/pricing')}
+                    className="w-7 h-7 rounded-full border border-slate-600 flex items-center justify-center text-slate-300 hover:text-white hover:border-slate-400 transition-colors text-xs font-bold"
+                    title="SparkCode Wallet & Tier"
+                  >
+                    ₹
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const userName = session?.user?.name || session?.user?.email?.split('@')[0] || 'My';
+                      setNewRoomName(`${userName}'s Live Room`);
+                      setShowNewRoomModal(true);
+                    }}
+                    className="hover:text-white transition-colors"
+                    title="Camera / Live Cast"
+                  >
+                    <Camera className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.getElementById('whatsapp-search-input');
+                      input?.focus();
+                    }}
+                    className="hover:text-white transition-colors"
+                    title="Search"
+                  >
+                    <Search className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowSafeInfoModal(true)}
+                    className="hover:text-white transition-colors"
+                    title="More options"
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
 
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-16 text-slate-500 gap-2">
-                  <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
-                  <span className="text-xs">Loading chat channels...</span>
-                </div>
-              ) : groups.length === 0 ? (
-                <div className="bg-[#14151a] border border-slate-800 rounded-2xl p-10 text-center space-y-3">
-                  <MessageSquare className="w-8 h-8 text-slate-500 mx-auto" />
-                  <h3 className="text-sm font-bold text-white">No active chats</h3>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                    Join or create a group room to chat with members, share algorithm snippets, and collaborate.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {groups.map((g) => (
-                    <div
-                      key={g.id}
-                      onClick={() => router.push(`/groups/${g.id}`)}
-                      className="bg-[#15161c] hover:bg-[#1a1b24] border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-4 flex items-center justify-between gap-4 transition-all shadow-md cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center font-bold text-sm text-white shadow shrink-0">
-                          {g.name.slice(0, 2).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="text-xs sm:text-sm font-bold text-white truncate">{g.name}</h4>
-                          <p className="text-xs text-slate-400 truncate">
-                            {g.memberCount} members · End-to-end encrypted chat channel
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
-                          Open Chat <ArrowRight className="w-3.5 h-3.5" />
-                        </span>
-                      </div>
+              {/* ── SEARCH BAR: "Ask Meta AI or Search" ── */}
+              <div className="px-4 pt-3 pb-2 bg-[#111b21] shrink-0">
+                <div className="flex items-center bg-[#202c33] rounded-full px-4 py-2 text-xs text-slate-200 border border-slate-700/50 shadow-inner">
+                  <Search className="w-4 h-4 text-slate-400 mr-2.5 shrink-0" />
+                  <input
+                    id="whatsapp-search-input"
+                    type="text"
+                    value={chatSearchQuery}
+                    onChange={(e) => setChatSearchQuery(e.target.value)}
+                    placeholder="Ask Meta AI or Search"
+                    className="w-full bg-transparent outline-none placeholder-slate-400 text-xs font-medium text-slate-100"
+                  />
+                  {chatSearchQuery ? (
+                    <button type="button" onClick={() => setChatSearchQuery('')} className="p-0.5 text-slate-400">
+                      <X className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-blue-500 via-indigo-500 to-pink-500 p-0.5 shrink-0 opacity-90 shadow">
+                      <div className="w-full h-full bg-[#202c33] rounded-full" />
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
+
+                {/* ── FILTER CHIPS ── */}
+                <div className="flex items-center gap-2 pt-3 pb-1 overflow-x-auto no-scrollbar text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setChatFilter('all')}
+                    className={`px-3.5 py-1 rounded-full transition-all shrink-0 ${
+                      chatFilter === 'all'
+                        ? 'bg-[#0a332c] text-[#25d366] font-bold border border-[#25d366]/40'
+                        : 'bg-[#202c33] text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    All
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setChatFilter('unread')}
+                    className={`px-3 py-1 rounded-full transition-all shrink-0 flex items-center gap-1.5 ${
+                      chatFilter === 'unread'
+                        ? 'bg-[#0a332c] text-[#25d366] font-bold border border-[#25d366]/40'
+                        : 'bg-[#202c33] text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <span>Unread</span>
+                    <span className="w-4 h-4 rounded-full bg-[#25d366] text-black text-[10px] font-extrabold flex items-center justify-center">
+                      7
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setChatFilter('favourites')}
+                    className={`px-3.5 py-1 rounded-full transition-all shrink-0 ${
+                      chatFilter === 'favourites'
+                        ? 'bg-[#0a332c] text-[#25d366] font-bold border border-[#25d366]/40'
+                        : 'bg-[#202c33] text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    Favourites
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setChatFilter('groups')}
+                    className={`px-3 py-1 rounded-full transition-all shrink-0 flex items-center gap-1.5 ${
+                      chatFilter === 'groups'
+                        ? 'bg-[#0a332c] text-[#25d366] font-bold border border-[#25d366]/40'
+                        : 'bg-[#202c33] text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <span>Groups</span>
+                    <span className="w-4 h-4 rounded-full bg-[#25d366] text-black text-[10px] font-extrabold flex items-center justify-center">
+                      7
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const userName = session?.user?.name || session?.user?.email?.split('@')[0] || 'My';
+                      setNewRoomName(`${userName}'s Chat Room`);
+                      setShowNewRoomModal(true);
+                    }}
+                    className="w-7 h-7 rounded-full bg-[#202c33] text-slate-400 hover:text-white flex items-center justify-center text-xs shrink-0"
+                    title="New Category / Filter"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* ── ARCHIVED ROW (Exact Screenshot Feature) ── */}
+              <div
+                onClick={() => setChatFilter('all')}
+                className="px-5 py-3.5 bg-[#111b21] hover:bg-[#202c33] flex items-center justify-between border-b border-slate-800/40 cursor-pointer transition-colors shrink-0"
+              >
+                <div className="flex items-center gap-4">
+                  <Archive className="w-5 h-5 text-slate-400" />
+                  <span className="text-sm font-bold text-slate-100">Archived</span>
+                </div>
+                <span className="text-[#25d366] text-xs font-bold">@</span>
+              </div>
+
+              {/* ── CHAT ITEMS STREAM (Exact Screenshot WhatsApp dark list) ── */}
+              <div className="flex-1 overflow-y-auto divide-y divide-slate-800/30 relative">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-2">
+                    <Loader2 className="w-7 h-7 animate-spin text-[#25d366]" />
+                    <span className="text-xs">Loading conversations...</span>
+                  </div>
+                ) : groups.length === 0 ? (
+                  <div className="py-16 text-center text-slate-400 text-xs px-6 space-y-3">
+                    <MessageSquare className="w-10 h-10 text-slate-600 mx-auto" />
+                    <h3 className="font-bold text-slate-200 text-sm">No group chats yet</h3>
+                    <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
+                      Tap the green (+) button below to create your first collaborative coding group chat!
+                    </p>
+                  </div>
+                ) : (
+                  groups
+                    .filter((g) =>
+                      g.name.toLowerCase().includes(chatSearchQuery.toLowerCase()) ||
+                      (g.description || '').toLowerCase().includes(chatSearchQuery.toLowerCase())
+                    )
+                    .map((g, idx) => {
+                      // Alternate mock styling details to match the lively screenshot
+                      const unreadCount = (idx % 3) + 1;
+                      const isPinned = idx === 0;
+                      const hasLiveStage = idx % 2 === 0;
+
+                      return (
+                        <div
+                          key={g.id}
+                          onClick={() => router.push(`/groups/${g.id}`)}
+                          className="px-4 py-3 bg-[#111b21] hover:bg-[#202c33] flex items-center justify-between gap-3 cursor-pointer transition-colors active:bg-[#2a3942]"
+                        >
+                          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                            {/* Group Avatar */}
+                            <div className="relative shrink-0">
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-sm text-white shadow ${
+                                idx % 4 === 0
+                                  ? 'bg-gradient-to-br from-blue-700 to-indigo-800'
+                                  : idx % 4 === 1
+                                  ? 'bg-gradient-to-br from-purple-700 to-indigo-900'
+                                  : idx % 4 === 2
+                                  ? 'bg-gradient-to-br from-emerald-600 to-teal-800'
+                                  : 'bg-gradient-to-br from-slate-700 to-zinc-900'
+                              }`}>
+                                {g.name.slice(0, 2).toUpperCase()}
+                              </div>
+                              {hasLiveStage && (
+                                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-[#25d366] border-2 border-[#111b21] animate-pulse" />
+                              )}
+                            </div>
+
+                            {/* Group Title & Last Message line */}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-1 mb-0.5">
+                                <h4 className="text-xs sm:text-sm font-bold text-slate-100 truncate tracking-tight">
+                                  {g.name}
+                                </h4>
+                                <span className="text-[10px] text-[#25d366] font-semibold shrink-0">
+                                  {idx === 0 ? 'Yesterday' : idx === 1 ? '12:47 am' : 'Yesterday'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between text-xs text-slate-400">
+                                <p className="truncate text-[11px] pr-2 text-slate-400">
+                                  {idx === 0 ? (
+                                    <>
+                                      <span className="text-slate-300 font-medium">~ .: </span>
+                                      <span>📷 11-1 4 MATCHES AVAILABLE...</span>
+                                    </>
+                                  ) : idx === 1 ? (
+                                    <>
+                                      <span className="text-[#53bdeb] font-bold">✓✓ </span>
+                                      <span>send protein powder pick</span>
+                                    </>
+                                  ) : idx === 2 ? (
+                                    <>
+                                      <span className="text-slate-300 font-medium">~ Jin: </span>
+                                      <span>DM FOR 11-1AM SLOTS🚀 ENT...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="text-slate-300 font-medium">~ simraaiman: </span>
+                                      <span>Pdf version</span>
+                                    </>
+                                  )}
+                                </p>
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  {isPinned && <Pin className="w-3.5 h-3.5 text-slate-400 -rotate-45" />}
+                                  <span className="w-4 h-4 rounded-full bg-[#25d366] text-black font-extrabold text-[9px] flex items-center justify-center shadow">
+                                    {unreadCount}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                )}
+              </div>
+
+              {/* ── FLOATING ACTION BUTTON (FAB) (Exact Screenshot Bright Green Square Button) ── */}
+              <div className="relative p-4 flex justify-end shrink-0 pointer-events-none bg-transparent">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const userName = session?.user?.name || session?.user?.email?.split('@')[0] || 'My';
+                    setNewRoomName(`${userName}'s Study Group`);
+                    setShowNewRoomModal(true);
+                  }}
+                  className="pointer-events-auto w-14 h-14 rounded-2xl bg-[#25d366] hover:bg-[#20ba5a] text-black flex items-center justify-center shadow-2xl transition-all transform active:scale-95 shadow-[#25d366]/30"
+                  title="New Group Chat"
+                >
+                  <MessageSquare className="w-6 h-6 fill-black" />
+                </button>
+              </div>
+
+              {/* ── BOTTOM WHATSAPP NAVIGATION BAR (Exact Screenshot Layout) ── */}
+              <div className="bg-[#111b21] border-t border-slate-800/80 px-4 py-2.5 flex items-center justify-around text-xs shrink-0">
+                {/* 1. Chats Tab */}
+                <button
+                  type="button"
+                  onClick={() => setChatBottomTab('chats')}
+                  className={`flex flex-col items-center gap-1 transition-colors ${
+                    chatBottomTab === 'chats' ? 'text-slate-100 font-bold' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div className="relative px-4 py-1 rounded-full bg-[#0a332c]">
+                    <MessageSquare className="w-5 h-5 text-[#25d366] fill-[#25d366]" />
+                    <span className="absolute -top-1 -right-0.5 px-1 py-0.2 rounded-full bg-[#25d366] text-black text-[9px] font-extrabold">
+                      7
+                    </span>
+                  </div>
+                  <span className="text-[11px]">Chats</span>
+                </button>
+
+                {/* 2. Updates Tab */}
+                <button
+                  type="button"
+                  onClick={() => setChatBottomTab('updates')}
+                  className={`flex flex-col items-center gap-1 transition-colors ${
+                    chatBottomTab === 'updates' ? 'text-slate-100 font-bold' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div className="px-4 py-1 rounded-full">
+                    <CircleDot className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px]">Updates</span>
+                </button>
+
+                {/* 3. Communities Tab */}
+                <button
+                  type="button"
+                  onClick={() => setChatBottomTab('communities')}
+                  className={`flex flex-col items-center gap-1 transition-colors ${
+                    chatBottomTab === 'communities' ? 'text-slate-100 font-bold' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div className="px-4 py-1 rounded-full">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px]">Communities</span>
+                </button>
+
+                {/* 4. Calls Tab */}
+                <button
+                  type="button"
+                  onClick={() => setChatBottomTab('calls')}
+                  className={`flex flex-col items-center gap-1 transition-colors ${
+                    chatBottomTab === 'calls' ? 'text-slate-100 font-bold' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div className="px-4 py-1 rounded-full">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px]">Calls</span>
+                </button>
+              </div>
             </div>
           )}
         </main>
