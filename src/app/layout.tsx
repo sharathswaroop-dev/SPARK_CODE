@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import './globals.css';
 import { SessionProvider } from 'next-auth/react';
 import { Header } from '@/components/layout/Header';
@@ -34,13 +33,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
           rel="stylesheet"
-        />
-        {/* Google AdSense Script */}
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7053894832120419"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
       </head>
       <body className="h-full flex flex-col min-h-screen">

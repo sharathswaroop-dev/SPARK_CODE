@@ -71,11 +71,6 @@ def solve_two_sum(nums, target):
 # Live driver: User 'sharath' is presenting with WebRTC Voice & Video`}
           </pre>
         </div>
-
-        {/* ── Ad Placement 1: Below Hero / Code Preview ── */}
-        <div className="max-w-4xl mx-auto pt-2">
-          <GoogleAd slot="1000000001" format="horizontal" />
-        </div>
       </section>
 
       {/* ── FEATURE GRID ──────────────────────────────────────── */}
@@ -124,9 +119,79 @@ def solve_two_sum(nums, target):
         </div>
       </section>
 
-      {/* ── Ad Placement 2: Between Feature Grid and Pricing ── */}
+      {/* ── EDUCATIONAL DEEP-DIVE: PEDAGOGY & METHODOLOGY ──────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="text-center space-y-2 max-w-3xl mx-auto">
+          <h2 className="text-2xl font-extrabold text-slate-950">Why Peer-to-Peer Coding Outperforms Solo Practice</h2>
+          <p className="text-slate-500 text-sm font-medium">
+            Mastering data structures and algorithms requires articulating trade-offs, debugging under observation, and writing optimal clean code.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="card p-6 border border-slate-200 bg-white space-y-3">
+            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <Code2 className="w-4 h-4 text-indigo-600" /> Driver &amp; Navigator Collaboration
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              SparkCode implements the industry-standard Pair Programming model. While one learner drives the Monaco code editor, their group peers navigate by reviewing edge cases, calculating asymptotic time and space complexities, and proposing structural invariants.
+            </p>
+          </div>
+
+          <div className="card p-6 border border-slate-200 bg-white space-y-3">
+            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500" /> Active Recall &amp; Mock Interview Simulation
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Explaining your mental model out loud during a live code cast simulates real high-stakes technical interviews at Tier-1 software companies. Learners overcome performance anxiety and build structured problem-solving communication habits.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CURATED STRIVER 455 CURRICULUM OVERVIEW ────────────── */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="text-center space-y-2 max-w-3xl mx-auto">
+          <h2 className="text-2xl font-extrabold text-slate-950">Curated Pattern-Based DSA Roadmap</h2>
+          <p className="text-slate-500 text-sm font-medium">
+            Focus on fundamental patterns rather than memorizing random solutions. Our curriculum organizes 455+ algorithmic questions into coherent mastery tracks.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+            <div className="font-extrabold text-slate-900 text-sm">Two Pointers &amp; Sliding Window</div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Optimal subarray extraction, contiguous memory analysis, and O(N) array shrinking techniques.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+            <div className="font-extrabold text-slate-900 text-sm">Trees &amp; Binary Search Trees</div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Pre/in/post-order traversals, lowest common ancestor, diameter calculations, and balance checks.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+            <div className="font-extrabold text-slate-900 text-sm">Graphs &amp; Shortest Paths</div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Breadth-first search, depth-first search, topological sort, Disjoint Set Union, and Dijkstra algorithms.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2">
+            <div className="font-extrabold text-slate-900 text-sm">Dynamic Programming</div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Overlapping subproblems, state identification, memoization transitions, and space-optimized tabulation.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Single Compliant Ad Unit: Positioned Between Educational Content & Pricing ── */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <GoogleAd slot="1000000002" format="auto" />
+        <GoogleAd slot="1000000001" format="auto" />
       </div>
 
       {/* ── PRICING MATRIX ────────────────────────────────────── */}
@@ -196,10 +261,43 @@ def solve_two_sum(nums, target):
         </div>
       </section>
 
-      {/* ── Ad Placement 3: Bottom / Above Footer ── */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <GoogleAd slot="1000000003" format="auto" />
-      </div>
+      {/* ── PLATFORM FREQUENTLY ASKED QUESTIONS ─────────────────── */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-extrabold text-slate-950">Frequently Asked Questions</h2>
+          <p className="text-slate-500 text-sm font-medium">Clear answers about SparkCode features, execution, and collaboration.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="card p-6 border border-slate-200 bg-white space-y-2">
+            <h4 className="font-extrabold text-slate-900 text-sm">Which programming languages are supported?</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              SparkCode supports Python 3.10, Node.js 18 (JavaScript), Java 15, and C++ (GCC 11). Each submission executes in an isolated sandbox with memory and runtime quotas.
+            </p>
+          </div>
+
+          <div className="card p-6 border border-slate-200 bg-white space-y-2">
+            <h4 className="font-extrabold text-slate-900 text-sm">How does WebRTC Live Code Casting work?</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Live casting uses direct peer-to-peer WebRTC channels for audio, video, and screen transmission. Editor states synchronize through low-latency operational transforms.
+            </p>
+          </div>
+
+          <div className="card p-6 border border-slate-200 bg-white space-y-2">
+            <h4 className="font-extrabold text-slate-900 text-sm">Can I practice solo without joining a group?</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Yes. You can access the entire 455-problem catalog, run code in the interactive playground, and compete in the Battle Arena completely independently.
+            </p>
+          </div>
+
+          <div className="card p-6 border border-slate-200 bg-white space-y-2">
+            <h4 className="font-extrabold text-slate-900 text-sm">Is study group creation really free?</h4>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Yes, creating and joining study groups, participating in voice/video calls, and solving Easy problems are 100% free with no credit card required.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
